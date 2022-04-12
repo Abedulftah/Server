@@ -32,20 +32,19 @@ public class ChatClientCLI {
 							continue;
 						if (message.equalsIgnoreCase("#exit")) {
 							System.out.println("Closing connection.");
-							client.closeConnection();
+							try {
+								client.closeConnection();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							try {
+								loopThread.join();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
 						}
-						else if(message.equals("#sendSubmitters")){
-							System.out.println("Abed, Sgier");
-						}
-						else if(message.equals("#sendSubmittersID")){
-							System.out.println("206529836, 209114859");
-						}
-						else if(message.equals("#echoHello")){
-							System.out.println("Hello World!");
-						}
-						else {
+						else
 							client.sendToServer(message);
-						}
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -60,25 +59,32 @@ public class ChatClientCLI {
 	}
 
 	public void displayMessage(Object message) {
-
-		if (isRunning) {
-			System.out.print("(Interrupted)\n");
-		}
-		System.out.println("Received message from server: " + message.toString());
-
-		String[] help = message.toString().split(" ");
 		if (isRunning) {
 			System.out.print("(Interrupted)\n");
 		}
 		System.out.print("Received message from server: ");
-		for(int i = 1; i < help.length - 1; i++) {
-			System.out.print(help[i] + " ");
-		}
-		System.out.println(help[help.length-1]);
 
+		if(message.equals("#sendSubmitters")){
+			System.out.println("Abed, Sgier");
+		}
+		else if(message.equals("#sendSubmittersID")){
+			System.out.println("206529836, 209114859");
+		}
+		else if(message.equals("#echoHello")){
+			System.out.println("Hello World!");
+		}
+		else{
+			String[] help = message.toString().split(" ");
+			for(int i = 1; i < help.length - 1; i++) {
+				System.out.print(help[i] + " ");
+			}
+			System.out.println(help[help.length-1]);
+		}
 		if (isRunning)
 			System.out.print(SHELL_STRING);
 	}
+
+
 
 	public void closeConnection() {
 		System.out.println("Connection closed.");

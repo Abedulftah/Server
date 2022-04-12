@@ -13,7 +13,7 @@ public class SimpleChatServer extends AbstractServer {
 
 	@Override
 	protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-		System.out.println("Received Message: " + msg.toString());
+		System.out.println("Received Messages: " + msg.toString());
 		sendToAllClients(msg);
 	}
 	
