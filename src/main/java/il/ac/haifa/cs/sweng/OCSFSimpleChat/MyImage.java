@@ -18,8 +18,7 @@ public class MyImage implements Serializable {
         this.url = url;
     }
 
-    public MyImage() {
-    }
+    public MyImage() {}
 
     public String getUrl() {
         return this.url;
