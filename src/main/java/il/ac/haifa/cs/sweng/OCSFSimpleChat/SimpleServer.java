@@ -128,7 +128,7 @@ public class SimpleServer extends AbstractServer {
 	protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
 
 		MsgObject msgObject = (MsgObject) msg;
-		System.out.println("das");
+
 		if (msgObject.getMsg().equals("Catalog")) {
 
 			try {
@@ -178,6 +178,19 @@ public class SimpleServer extends AbstractServer {
 				}
 			}
 		}
+		else if(msgObject.getMsg().equals("contactUs")){
+			try {
+				client.sendToClient(msgObject);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+//		else if(msgObject.getMsg().equals("signIn")){
+//
+//		}
+//		else if(msgObject.getMsg().equals("signUp")){
+//
+//		}
 	}
 
 	@Override
