@@ -129,68 +129,74 @@ public class SimpleServer extends AbstractServer {
 
 		MsgObject msgObject = (MsgObject) msg;
 
-		if (msgObject.getMsg().equals("Catalog")) {
+		switch (msgObject.getMsg()) {
+			case "Catalog":
 
-			try {
-				SessionFactory sessionFactory = getSessionFactory();
-				session = sessionFactory.openSession();
-				session.beginTransaction();
+				try {
+					SessionFactory sessionFactory = getSessionFactory();
+					session = sessionFactory.openSession();
+					session.beginTransaction();
 
-				msgObject.setCatalogList(getCatalog());
+					msgObject.setCatalogList(getCatalog());
 
-				session.getTransaction().commit(); // Save everything.
-			} catch (Exception exception) {
-				if (session != null) {
-					session.getTransaction().rollback();
+					session.getTransaction().commit(); // Save everything.
+				} catch (Exception exception) {
+					if (session != null) {
+						session.getTransaction().rollback();
+					}
+					System.err.println("An error occurred, changes have been rolled back.");
+					exception.printStackTrace();
 				}
-				System.err.println("An error occurred, changes have been rolled back.");
-				exception.printStackTrace();
-			}
-			try {
-				client.sendToClient(msgObject);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+				try {
+					client.sendToClient(msgObject);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+			case "edit":
+				List<Catalog> list = msgObject.getCatalogList();
+				try {
+					SessionFactory sessionFactory = getSessionFactory();
+					session = sessionFactory.openSession();
+					session.beginTransaction();
+
+					for (Catalog c : list) {
+						session.update(c);
+						session.flush();
+					}
+
+					System.out.println("updating the price");
+					session.getTransaction().commit(); // Save everything.
+				} catch (Exception exception) {
+					if (session != null) {
+						session.getTransaction().rollback();
+					}
+					System.err.println("An error occurred, changes have been rolled back.");
+					exception.printStackTrace();
+				} finally {
+					if (session != null) {
+						session.close();
+					}
+				}
+				break;
+			case "contactUs":
+			case "signIn":
+			case "signUp":
+			case "signUpAccountType":
+				try {
+					client.sendToClient(msgObject);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+			default:
+				try {
+					client.sendToClient(msgObject);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
 		}
-		else if(msgObject.getMsg().equals("edit")){
-			List<Catalog> list = msgObject.getCatalogList();
-			try {
-				SessionFactory sessionFactory = getSessionFactory();
-				session = sessionFactory.openSession();
-				session.beginTransaction();
-
-				for(Catalog c : list){
-					session.update(c);
-					session.flush();
-				}
-
-				System.out.println("updating the price");
-				session.getTransaction().commit(); // Save everything.
-			} catch (Exception exception) {
-				if (session != null) {
-					session.getTransaction().rollback();
-				}
-				System.err.println("An error occurred, changes have been rolled back.");
-				exception.printStackTrace();
-			} finally {
-				if (session != null) {
-					session.close();
-				}
-			}
-		}
-		else if(msgObject.getMsg().equals("contactUs")){
-			try {
-				client.sendToClient(msgObject);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-//		else if(msgObject.getMsg().equals("signIn")){
-//
-//		}
-//		else if(msgObject.getMsg().equals("signUp")){
-//
-//		}
 	}
 
 	@Override
