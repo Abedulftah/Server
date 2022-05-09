@@ -17,7 +17,7 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("I'm fucking listening");
+        System.out.println("I'm listening");
 
     }
 }
