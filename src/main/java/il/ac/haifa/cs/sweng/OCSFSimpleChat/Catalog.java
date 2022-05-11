@@ -23,13 +23,15 @@ public class Catalog implements Serializable {
     private double price;
     @Column(name = "size")
     private String size;
-//    @Column(name = "Quantity")
+    //    @Column(name = "Quantity")
 //    private int left;
-    @ManyToOne(cascade = CascadeType.ALL)
-    private MyImage image;
+//    @ManyToOne(cascade = CascadeType.ALL)
+//    private MyImage image;
+    @Column(name = "imgUrl")
+    private String imgUrl;
 
-    public Catalog(MyImage image, String name, double price, String details, String size, String color){
-        this.image = image;
+    public Catalog(String imgUrl, String name, double price, String details, String size, String color){
+        this.imgUrl = imgUrl;
         this.name = name;
         this.price = price;
         this.itemDetails = details;
@@ -59,17 +61,17 @@ public class Catalog implements Serializable {
         return price;
     }
 
-    public MyImage getImage() {
-        return image;
-    }
+//    public MyImage getImage() {
+//        return image;
+//    }
 
     public String getItemDetails() {
         return itemDetails;
     }
 
-    public void setImage(MyImage image) {
-        this.image = image;
-    }
+//    public void setImage(MyImage image) {
+//        this.image = image;
+//    }
 
     public double getPrice() {
         return price;
@@ -103,6 +105,15 @@ public class Catalog implements Serializable {
 //    }
 
     //public void setLeft(int left) {
-     //   this.left = left;
+    //   this.left = left;
     //}
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
 }
