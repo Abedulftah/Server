@@ -42,6 +42,7 @@ public class SimpleServer extends AbstractServer {
 
 	public static void generate(){
 		session.save(new Catalog("/Image/All_Day_Love.png", "All Day Love",
+
 				65.99, "Mixed roses in a glass bowl and a teddy bear",
 				"Approximately 11\" W x 12\" H", "ffd000"));
 		session.flush();
