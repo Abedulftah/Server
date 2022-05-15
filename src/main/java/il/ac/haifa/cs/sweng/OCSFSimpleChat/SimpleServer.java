@@ -42,11 +42,12 @@ public class SimpleServer extends AbstractServer {
 
 	public static void generate(){
 		session.save(new Catalog("/Image/All_Day_Love.png", "All Day Love",
-				65.99, "Mixed roses in a glass bowl and a teddy\nbear",
+
+				65.99, "Mixed roses in a glass bowl and a teddy bear",
 				"Approximately 11\" W x 12\" H", "ffd000"));
 		session.flush();
 		session.save(new Catalog("/Image/Basket_To_Love_You.png", "Basket To Love You",
-				59.99, "Arrangement of roses in a basket and a\nteddy bear", "Approximately 12\" W x 12\" H", "f76da9"));
+				59.99, "Arrangement of roses in a basket and a teddy bear", "Approximately 12\" W x 12\" H", "f76da9"));
 		session.flush();
 
 		session.save(new Catalog("/Image/Beautiful_You.png", "Beautiful You",
@@ -55,43 +56,43 @@ public class SimpleServer extends AbstractServer {
 		session.flush();
 
 		session.save(new Catalog("/Image/Charming_Day.png", "Charming Day",
-				88.99, "Premium long stem roses arranged in a\nglass vase and a box of chocolates", "Approximately 20\" W x 24\" H", "ff0000"));
+				88.99, "Premium long stem roses arranged in a glass vase and a box of chocolates", "Approximately 20\" W x 24\" H", "ff0000"));
 		session.flush();
 
 		session.save(new Catalog("/Image/Charming_Roses.png", "Charming Roses",
-				85.99, "Arrangement of long-stemmed roses in\na vase",
+				85.99, "Arrangement of long-stemmed roses in a vase",
 				"Approximately 27\" W. x 31\" H", "750000"));
 		session.flush();
 
 		session.save(new Catalog("/Image/Lavender_Roses.png", "Lavender Roses",
-				57.99, "Arrangement of 12 or 18 lavender roses\nin a glass vase", "Approximately 14\" W. x 16\" H", "db7fd1"));
+				57.99, "Arrangement of 12 or 18 lavender roses in a glass vase", "Approximately 14\" W. x 16\" H", "db7fd1"));
 		session.flush();
 
 		session.save(new Catalog("/Image/Love_Arrangement.png", "Love Arrangement",
-				64.99, "Arrangement of pink carnations, monte\ncasino, lisianthus and others in a glass\nvase",
+				64.99, "Arrangement of pink carnations, monte casino, lisianthus and others in a glass vase",
 				"Approximately 9\" W x 11\" H", "e0a2da"));
 		session.flush();
 
 		session.save(new Catalog("/Image/Multicoloured_Aroma.png", "Multicoloured Aroma",
-				55.99, "Arrangement of gerbera, daisies, roses\nand seasonal flowers in a glass vase", "Approximately 10\" W x 11\" H", "a200ff"));
+				55.99, "Arrangement of gerbera, daisies, roses and seasonal flowers in a glass vase", "Approximately 10\" W x 11\" H", "a200ff"));
 		session.flush();
 
 		session.save(new Catalog("/Image/Night_Wish_Roses.png", "Night Wish Roses",
-				39.99, "Arrangement of orange roses and green\nfoliage in a glass vase",
+				39.99, "Arrangement of orange roses and green foliage in a glass vase",
 				"Approximately 16\" W. x 18\" H", "ff8c00"));
 		session.flush();
 
-		session.save(new Catalog("/Image/Purple_Heaven.png", "Purple Heaven",
-				69.99, "Arrangement of lavender roses, pink\nwaxflower, fuchsia miniature carnations,\npurple stock, trachelium and alstroemeria\nin a glass vase.", "Approximately 10\" W x 10\" H", "9d00ff"));
+		session.save(new Catalog("/Image/Pop_Israel_Flowers.png", "Pop Israel Flowers",
+				59.99, "Arrangement of daisies, peruvian lilies, gerberas and chrysanthemums along with a vase", "Approximately 9\" H x 8\" W", "196ef7"));
 
 		session.flush();
 		session.save(new Catalog("/Image/Sweet_Tender.png", "Sweet Tender",
-				59.99, "Arrangement of mixed pink, purple and\nlavender roses in a vase",
+				59.99, "Arrangement of mixed pink, purple and lavender roses in a vase",
 				"Approximately 12\" W. x 16\" H", "ff0055"));
 		session.flush();
 
 		session.save(new Catalog("/Image/The_Best_Day.png", "The Best Day",
-				59.99, "Arrangement of roses, lilies and\nalstroemeria in a glass vase", "Approximately 10.5\" W x 11\" H", "c9c9c9"));
+				59.99, "Arrangement of roses, lilies and alstroemeria in a glass vase", "Approximately 10.5\" W x 11\" H", "c9c9c9"));
 		session.flush();
 
 	}
