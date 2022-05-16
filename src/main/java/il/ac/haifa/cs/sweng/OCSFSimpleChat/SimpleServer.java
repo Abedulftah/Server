@@ -253,6 +253,30 @@ public class SimpleServer extends AbstractServer {
 				}
 				break;
 
+			case "notificationsUser":
+
+				try {
+					SessionFactory sessionFactory = getSessionFactory();
+					session = sessionFactory.openSession();
+					session.beginTransaction();
+
+					msgObject.setCatalogList(getCatalog());
+
+					session.getTransaction().commit(); // Save everything.
+				} catch (Exception exception) {
+					if (session != null) {
+						session.getTransaction().rollback();
+					}
+					System.err.println("An error occurred, changes have been rolled back.");
+					exception.printStackTrace();
+				}
+				try {
+					client.sendToClient(msgObject);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+
 			case "contactUs":
 			case "signIn":
 			case "signUp":
