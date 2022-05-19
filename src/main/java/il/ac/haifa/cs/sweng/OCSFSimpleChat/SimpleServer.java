@@ -42,7 +42,6 @@ public class SimpleServer extends AbstractServer {
 
 	public static void generate(){
 		session.save(new Catalog("/Image/All_Day_Love.png", "All Day Love",
-
 				65.99, "Mixed roses in a glass bowl and a teddy bear",
 				"Approximately 11\" W x 12\" H", "ffd000"));
 		session.flush();
@@ -270,6 +269,62 @@ public class SimpleServer extends AbstractServer {
 					System.err.println("An error occurred, changes have been rolled back.");
 					exception.printStackTrace();
 				}
+				try {
+					client.sendToClient(msgObject);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+
+			case "primarySystemWorker":
+
+				try {
+					SessionFactory sessionFactory = getSessionFactory();
+					session = sessionFactory.openSession();
+					session.beginTransaction();
+
+					msgObject.setCatalogList(getCatalog());
+
+					session.getTransaction().commit(); // Save everything.
+				} catch (Exception exception) {
+					if (session != null) {
+						session.getTransaction().rollback();
+					}
+					System.err.println("An error occurred, changes have been rolled back.");
+					exception.printStackTrace();
+				}
+				try {
+					client.sendToClient(msgObject);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+
+			case "catalogueSystemWorker":
+
+				try {
+					SessionFactory sessionFactory = getSessionFactory();
+					session = sessionFactory.openSession();
+					session.beginTransaction();
+
+					msgObject.setCatalogList(getCatalog());
+
+					session.getTransaction().commit(); // Save everything.
+				} catch (Exception exception) {
+					if (session != null) {
+						session.getTransaction().rollback();
+					}
+					System.err.println("An error occurred, changes have been rolled back.");
+					exception.printStackTrace();
+				}
+				try {
+					client.sendToClient(msgObject);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				break;
+
+			case "complaintsCustomerService":
 				try {
 					client.sendToClient(msgObject);
 				} catch (IOException e) {
