@@ -1,6 +1,7 @@
 package il.ac.haifa.cs.sweng.OCSFSimpleChat;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import il.ac.haifa.cs.sweng.OCSFSimpleChat.ocsf.server.AbstractServer;
@@ -10,9 +11,11 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.query.criteria.internal.CriteriaQueryImpl;
 import org.hibernate.service.ServiceRegistry;
 
 
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
@@ -25,6 +28,7 @@ public class SimpleServer extends AbstractServer {
 
 		configuration.addAnnotatedClass(Catalog.class);
 		configuration.addAnnotatedClass(MyImage.class);
+		configuration.addAnnotatedClass(Notifications.class);
 
 		ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
 				.applySettings(configuration.getProperties())
@@ -38,6 +42,22 @@ public class SimpleServer extends AbstractServer {
 		CriteriaQuery<Catalog> query = builder.createQuery(Catalog.class);
 		query.from(Catalog.class);
 		return session.createQuery(query).getResultList();
+	}
+
+	public static List<Notifications> getNotifications() {
+		CriteriaBuilder builder = session.getCriteriaBuilder();
+		CriteriaQuery<Notifications> query = builder.createQuery(Notifications.class);
+		query.from(Notifications.class);
+		return session.createQuery(query).getResultList();
+	}
+
+	public static void generateNotifications() {
+		session.save(new Notifications("mhmd.shahin@outlook.com", "Test Notification", "It's done", "19.5.2022"));
+		session.flush();
+		session.save(new Notifications("mohamad.shaheen@outlook.com", "Test Notification 1", "It's done 1", "20.5.2022"));
+		session.flush();
+		session.save(new Notifications("douchebag@hotmail.com", "Test Notification 2", "It's done 2", "21.5.2022"));
+		session.flush();
 	}
 
 	public static void generate(){
@@ -94,6 +114,30 @@ public class SimpleServer extends AbstractServer {
 				59.99, "Arrangement of roses, lilies and alstroemeria in a glass vase", "Approximately 10.5\" W x 11\" H", "c9c9c9"));
 		session.flush();
 
+	}
+
+	public static void addNotificationsToDataBase() {
+		try {
+			SessionFactory sessionFactory = getSessionFactory();
+			session = sessionFactory.openSession();
+			session.beginTransaction();
+
+			if(getNotifications().isEmpty()) {
+				generateNotifications();
+			}
+
+			session.getTransaction().commit(); // Save everything.
+		} catch (Exception exception) {
+			if (session != null) {
+				session.getTransaction().rollback();
+			}
+			System.err.println("An error occurred, changes have been rolled back.");
+			exception.printStackTrace();
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
 	}
 
 	public static void addToDataBase() {
@@ -153,6 +197,7 @@ public class SimpleServer extends AbstractServer {
 					e.printStackTrace();
 				}
 				break;
+
 			case "edit":
 				List<Catalog> list = msgObject.getCatalogList();
 				try {
@@ -166,6 +211,64 @@ public class SimpleServer extends AbstractServer {
 					}
 
 					System.out.println("updating the price");
+					session.getTransaction().commit(); // Save everything.
+				} catch (Exception exception) {
+					if (session != null) {
+						session.getTransaction().rollback();
+					}
+					System.err.println("An error occurred, changes have been rolled back.");
+					exception.printStackTrace();
+				} finally {
+					if (session != null) {
+						session.close();
+					}
+				}
+				break;
+
+			case "deleteAllNotifications":
+				List<Notifications> notificationsList = getNotifications();
+				try {
+					SessionFactory sessionFactory = getSessionFactory();
+					session = sessionFactory.openSession();
+					session.beginTransaction();
+
+					for (Notifications notification : notificationsList) {
+						session.delete(notification);
+						session.flush();
+					}
+
+
+
+					System.out.println("deleting notification");
+					session.getTransaction().commit(); // Save everything.
+				} catch (Exception exception) {
+					if (session != null) {
+						session.getTransaction().rollback();
+					}
+					System.err.println("An error occurred, changes have been rolled back.");
+					exception.printStackTrace();
+				} finally {
+					if (session != null) {
+						session.close();
+					}
+				}
+				break;
+
+			case "deleteNotification":
+				List<Notifications> notificationsList1 = getNotifications();
+				try {
+					SessionFactory sessionFactory = getSessionFactory();
+					session = sessionFactory.openSession();
+					session.beginTransaction();
+
+					for (Notifications notification : notificationsList1) {
+						if (notification.getId() == msgObject.getId()) {
+							session.delete(notification);
+							session.flush();
+						}
+					}
+
+					System.out.println("deleting notification");
 					session.getTransaction().commit(); // Save everything.
 				} catch (Exception exception) {
 					if (session != null) {
@@ -259,7 +362,7 @@ public class SimpleServer extends AbstractServer {
 					session = sessionFactory.openSession();
 					session.beginTransaction();
 
-					msgObject.setCatalogList(getCatalog());
+					msgObject.setNotificationsList(getNotifications());
 
 					session.getTransaction().commit(); // Save everything.
 				} catch (Exception exception) {

@@ -2,6 +2,7 @@ package il.ac.haifa.cs.sweng.OCSFSimpleChat;
 
 import java.io.IOException;
 
+import static il.ac.haifa.cs.sweng.OCSFSimpleChat.SimpleServer.addNotificationsToDataBase;
 import static il.ac.haifa.cs.sweng.OCSFSimpleChat.SimpleServer.addToDataBase;
 
 public class Main {
@@ -11,6 +12,7 @@ public class Main {
         server = new SimpleServer(3000);
 
         addToDataBase();
+        addNotificationsToDataBase();
 
         try {
             server.listen();
