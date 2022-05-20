@@ -1,14 +1,14 @@
 package il.ac.haifa.cs.sweng.OCSFSimpleChat;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MsgObject implements Serializable {
     private static final long serialVersionUID = -8224097662914849956L;
     String msg;
     Object object;
-    List<Catalog> catalogList;
-
+    List<Catalog> catalogList = new ArrayList<>();
     public MsgObject() {
     }
 
@@ -19,6 +19,7 @@ public class MsgObject implements Serializable {
 
     public MsgObject(String msg) {
         this.msg = msg;
+        this.object = null;
     }
 
     public String getMsg() {
@@ -44,4 +45,6 @@ public class MsgObject implements Serializable {
     public void setCatalogList(List<Catalog> catalogList) {
         this.catalogList = catalogList;
     }
+
 }
+
