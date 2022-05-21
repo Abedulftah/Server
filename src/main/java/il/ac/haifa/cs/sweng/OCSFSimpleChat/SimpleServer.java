@@ -567,6 +567,135 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
+            case "specialOrdersCustomerService":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    msgObject.setObject(getSpecialItems());
+
+                    System.out.println("getting special items");
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "itemRefused":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    CustomerWorkerRespond customerWorkerRespond = (CustomerWorkerRespond) msgObject.getObject();
+                    List<SpecialItem> specialItems = getSpecialItems();
+
+                    session.save(customerWorkerRespond);
+                    session.flush();
+
+
+                    if(specialItems != null) {
+                        for (SpecialItem specialItem : specialItems) {
+                            if (specialItem.getData().equals(customerWorkerRespond.getMessage()) ) {
+                                specialItem.setUser(null);
+                                session.remove(specialItem);
+                                session.flush();
+                            }
+                        }
+                    }
+
+                    System.out.println("refusing a special item");
+                    msgObject.setMsg("specialOrdersCustomerService");
+                    msgObject.setObject(getSpecialItems());
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "itemAccept":
+            case "itemRespond":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    CustomerWorkerRespond customerWorkerRespond = (CustomerWorkerRespond) msgObject.getObject();
+                    List<SpecialItem> specialItems = getSpecialItems();
+
+                    session.save(customerWorkerRespond);
+                    session.flush();
+                    Catalog catalog = new Catalog();
+
+
+                    if(specialItems != null) {
+                        for (SpecialItem specialItem : specialItems) {
+                            if (specialItem.getData().equals(customerWorkerRespond.getMessage()) ) {
+                                catalog.setLeft(specialItem.getNumOfFlowers());
+                                catalog.setName(specialItem.getContainer());
+                                catalog.setPrivilege(1);
+                                catalog.setItemDetails(specialItem.getData());
+                                catalog.setUser(specialItem.getUser());
+                                catalog.setPrice(specialItem.getPrice().substring(7));
+                                catalog.setColor(specialItem.getColor());
+                                catalog.setSize("Unknown (special item).");
+
+                                specialItem.setUser(null);
+                                session.remove(specialItem);
+                                session.save(catalog);
+                                session.flush();
+                                break;
+                            }
+                        }
+                    }
+
+                    System.out.println("accepting a special item");
+                    msgObject.setMsg("specialOrdersCustomerService");
+                    msgObject.setObject(getSpecialItems());
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
             case "messageRespond":
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
