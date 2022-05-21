@@ -27,6 +27,7 @@ public class SimpleServer extends AbstractServer {
         configuration.addAnnotatedClass(SignUp.class);
         configuration.addAnnotatedClass(Complain.class);
         configuration.addAnnotatedClass(SpecialItem.class);
+        configuration.addAnnotatedClass(ComplainRespond.class);
 
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                 .applySettings(configuration.getProperties())
@@ -60,6 +61,13 @@ public class SimpleServer extends AbstractServer {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<SpecialItem> query = builder.createQuery(SpecialItem.class);
         query.from(SpecialItem.class);
+        return session.createQuery(query).getResultList();
+    }
+
+    public static List<ComplainRespond> getComplainResponds() {
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<ComplainRespond> query = builder.createQuery(ComplainRespond.class);
+        query.from(ComplainRespond.class);
         return session.createQuery(query).getResultList();
     }
 
@@ -118,6 +126,14 @@ public class SimpleServer extends AbstractServer {
                 "59.99", "Arrangement of roses, lilies and alstroemeria in a glass vase", "Approximately 10.5\" W x 11\" H", "c9c9c9"));
         session.flush();
 
+        session.save(new SignUp("customer service", "abed", "abed", "0542293918", "!", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
+
+        session.save(new SignUp("system worker", "mohammed", "mohammed", "0542293918", "!", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
+
+        session.save(new SignUp("elite", "I'm", "yes", "0542293918", "!", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
     }
 
     public static void addToDataBase() {
@@ -154,6 +170,8 @@ public class SimpleServer extends AbstractServer {
         MsgObject msgObject = (MsgObject) msg;
 
         switch (msgObject.getMsg()) {
+            case "catalogueUser":
+            case "cartUser":
             case "Catalog":
             case "catalogueSystemWorker":
                 try {
@@ -201,6 +219,45 @@ public class SimpleServer extends AbstractServer {
                     if (session != null) {
                         session.close();
                     }
+                }
+                break;
+            case "removeFromOrder":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    msgObject.getCatalogList().get(0).setUser(null);
+                    session.update(msgObject.getCatalogList().get(0));
+                    session.flush();
+
+                    for(Catalog catalog : msgObject.getCatalogList()) {
+                        session.remove(catalog);
+                    }
+
+                    System.out.println("removing catalog");
+
+                    msgObject.setCatalogList(getCatalog());
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+
+                msgObject.setMsg("myOrdersUser");
+
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
                 break;
             case "removeFromCart":
@@ -417,8 +474,117 @@ public class SimpleServer extends AbstractServer {
                 }
                 break;
 
-            case "catalogueUser":
-            case "cartUser":
+
+            case "removeNotification":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    ComplainRespond complainRespond = (ComplainRespond) msgObject.getObject();
+                    session.remove(complainRespond);
+                    session.flush();
+
+                    System.out.println("remove  notification");
+                    msgObject.setObject(getComplainResponds());
+                    msgObject.setMsg("notificationsUser");
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "messageRespond":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    //there is a problem where I cant get the catalog.
+                    ComplainRespond complainRespond = (ComplainRespond) msgObject.getObject();
+                    session.save(complainRespond);
+                    session.flush();
+
+                    List<Complain> complains = getComplains();
+
+                    for(Complain complain : complains){
+                        if(complain.getEmail().equals(complainRespond.getEmail())) {
+                            session.remove(complain);
+                            session.flush();
+                            break;
+                        }
+                    }
+                    msgObject.setObject(getComplains());
+                    msgObject.setMsg("complaintsCustomerService");
+                    System.out.println("responded to a complain");
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "removeAllNotification":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    //there is a problem where I cant get the catalog.
+                    List<ComplainRespond> complainResponds = getComplainResponds();
+                    SignUp user = (SignUp) msgObject.getObject();
+
+                    for(ComplainRespond complainRespond : complainResponds){
+                        if(complainRespond.getEmail().equals(user.getEmail())){
+                            session.remove(complainRespond);
+                            session.flush();
+                        }
+                    }
+
+                    System.out.println("remove all notif");
+                    msgObject.setObject(getComplainResponds());
+                    msgObject.setMsg("notificationsUser");
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
             case "notificationsUser":
 
                 try {
@@ -426,8 +592,8 @@ public class SimpleServer extends AbstractServer {
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
-                    msgObject.setCatalogList(getCatalog());
-                    System.out.println("getting catalog");
+                    msgObject.setObject(getComplainResponds());
+                    System.out.println("get complain responds");
                     session.getTransaction().commit(); // Save everything.
                 } catch (Exception exception) {
                     if (session != null) {
@@ -442,7 +608,6 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
-
             case "contactUs":
             case "signIn":
                 try {
