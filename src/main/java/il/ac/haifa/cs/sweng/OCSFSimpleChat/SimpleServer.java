@@ -482,7 +482,31 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
+            case "Home":
+            case "primaryUser":
+            case "primaryCustomerService":
+            case "primarySystemWorker":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
 
+                    session.update(msgObject.getObject());
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
             case "MakeAnOrder":
             case "complainList":
             case "specialItem":
@@ -835,12 +859,13 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
-            case "contactUs":
             case "signIn":
+            case "contactUs":
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
                     session.beginTransaction();
+
                     msgObject.setObject(getUsersInformation());
 
                     session.getTransaction().commit(); // Save everything.
@@ -857,14 +882,82 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
-            case "signUp":
-            case "signUpAccountType":
+            case "signInButton":
+                SignUp usr = null;
+                boolean found = false;
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    List<SignUp> users = getUsersInformation();
+                    String namePassword = (String) msgObject.getObject();
+
+                    for(SignUp user : users){
+                        if (((user.getEmail() + user.getPassword()).equals(namePassword) ||
+                                (user.getUsername() + user.getPassword()).equals(namePassword)) && !user.isSignedIn()) {
+                            found = true;
+                            usr = user;
+                            usr.setSignedIn(true);
+                        }
+                        else  if (((user.getEmail() + user.getPassword()).equals(namePassword) ||
+                                (user.getUsername() + user.getPassword()).equals(namePassword)) && user.isSignedIn()) {
+                            found = true;
+                        }
+                    }
+                    msgObject.setObject(getUsersInformation());
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                }
+                if(found) {
+                    if(usr == null){
+                        msgObject.setIn(2);
+                        msgObject.setMsg("signIn");
+                    }
+                    else{
+                        switch (usr.getAccountType()) {
+
+                            case "system worker":
+                                msgObject.setMsg("primarySystemWorker");
+                                msgObject.setObject(usr);
+                                break;
+
+                            case "customer service":
+                                msgObject.setMsg("primaryCustomerService");
+                                msgObject.setObject(usr);
+                                break;
+
+                            case "system manager":
+                                /////
+                                break;
+
+                            case "shop manager":
+                                ////
+                                break;
+
+                            default:
+                                msgObject.setMsg("primaryUser");
+                                msgObject.setObject(usr);
+                        }
+                    }
+                }
+                else {
+                    msgObject.setMsg("signIn");
+                    msgObject.setIn(1);
+                }
                 try {
                     client.sendToClient(msgObject);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 break;
+            case "signUp":
+            case "signUpAccountType":
             default:
                 try {
                     client.sendToClient(msgObject);
