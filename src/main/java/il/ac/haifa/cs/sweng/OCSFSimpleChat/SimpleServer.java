@@ -277,11 +277,11 @@ public class SimpleServer extends AbstractServer {
                     int day = Integer.parseInt(catalog1.getDate().substring(8,10));
                     int hour = Integer.parseInt(catalog1.getDate().substring(11,13));
 
-                    if(day == date.getDay() && (hour > date.getHours())){
-                        if(hour - 3 <= date.getHours() && hour - 1 >= date.getHours())
-                            refund = "According to the instrucation of the shop we see that you will be refunded by 50% of the value of this order.";
-                        else if(hour - 3 > date.getHours())
+                    if(day >= date.getDay() && (hour > date.getHours())){
+                        if(day > date.getDay() || hour - 3 > date.getHours())
                             refund = "According to the instrucation of the shop we see that you will be refunded by 100% of the value of this order.";
+                        else if(hour - 3 <= date.getHours() && hour - 1 >= date.getHours())
+                            refund = "According to the instrucation of the shop we see that you will be refunded by 50% of the value of this order.";
                     }
                     else
                         refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
