@@ -275,7 +275,7 @@ public class SimpleServer extends AbstractServer {
                     String refund = ""; // we need to check the data here and send a refund
 
                     int day = Integer.parseInt(catalog1.getDate().substring(8,10));
-                    int hour = Integer.parseInt(catalog1.getDate().substring(11,13));
+                    int hour = Integer.parseInt(catalog1.getDate().substring(11,12));
 
                     if(day >= date.getDay() && (hour > date.getHours())){
                         if(day > date.getDay() || hour - 3 > date.getHours())
