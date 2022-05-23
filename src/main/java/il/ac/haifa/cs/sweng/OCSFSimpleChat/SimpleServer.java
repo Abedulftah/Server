@@ -1,6 +1,7 @@
 package il.ac.haifa.cs.sweng.OCSFSimpleChat;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import il.ac.haifa.cs.sweng.OCSFSimpleChat.ocsf.server.AbstractServer;
@@ -261,14 +262,37 @@ public class SimpleServer extends AbstractServer {
                 }
                 break;
             case "removeFromOrder":
+                //we should send a notification about the refund he deserves
+                //we need to make a new instance of CustomerWorkerRespond and send an automatic messsage to the user notification
+                //all we need to do is save it to the database
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
                     session.beginTransaction();
+                    Date date = new Date();
+                    Catalog catalog1 = msgObject.catalogList.get(0);
 
-                    msgObject.getCatalogList().get(0).setUser(null);
-                    session.update(msgObject.getCatalogList().get(0));
+                    String refund = ""; // we need to check the data here and send a refund
+
+                    int day = Integer.parseInt(catalog1.getDate().substring(8,10));
+                    int hour = Integer.parseInt(catalog1.getDate().substring(11,13));
+
+                    if(day == date.getDay() && (hour > date.getHours())){
+                        if(hour - 3 <= date.getHours() && hour - 1 >= date.getHours())
+                            refund = "According to the instrucation of the shop we see that you will be refunded by 50% of the value of this order.";
+                        else if(hour - 3 > date.getHours())
+                            refund = "According to the instrucation of the shop we see that you will be refunded by 100% of the value of this order.";
+                    }
+                    else
+                        refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
+
+                    session.save(new CustomerWorkerRespond("System", catalog1.getUser().getUsername(), catalog1.getUser().getEmail()
+                    , catalog1.getUser().getPhone(), "Your Order: " + catalog1.getName() + " " + catalog1.getPrice(), refund));
+
+                    catalog1.setUser(null);
+                    session.update(catalog1);
                     session.flush();
+
 
                     for(Catalog catalog : msgObject.getCatalogList()) {
                         session.remove(catalog);
@@ -480,6 +504,23 @@ public class SimpleServer extends AbstractServer {
                     client.sendToClient(msgObject);
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+                break;
+            case "exit":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    session.update(msgObject.getObject());
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
                 }
                 break;
             case "Home":
