@@ -263,7 +263,7 @@ public class SimpleServer extends AbstractServer {
                 break;
             case "removeFromOrder":
                 //we should send a notification about the refund he deserves
-                //we need to make a new instance of CustomerWorkerRespond and send an automatic messsage to the user notification
+                //we need to make a new instance of CustomerWorkerRespond and send an automatic message to the user notification
                 //all we need to do is save it to the database
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
@@ -279,9 +279,9 @@ public class SimpleServer extends AbstractServer {
 
                     if(day >= date.getDay() && (hour > date.getHours())){
                         if(day > date.getDay() || hour - 3 > date.getHours())
-                            refund = "According to the instrucation of the shop we see that you will be refunded by 100% of the value of this order.";
+                            refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
                         else if(hour - 3 <= date.getHours() && hour - 1 >= date.getHours())
-                            refund = "According to the instrucation of the shop we see that you will be refunded by 50% of the value of this order.";
+                            refund = "According to the instruction of the shop we see that you will be refunded by 50% of the value of this order.";
                     }
                     else
                         refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";

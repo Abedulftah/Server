@@ -6,7 +6,7 @@
         <setting name="validation-enabled" value="true" />
         <setting name="provider-name" value="Hibernate" />
         <datasource-mapping>
-          <factory-entry name="OCSFSimpleChat" />
+          <factory-entry name="OCSFSimpleChat" value="486d8cca-348d-47bf-84a2-9faa3dd9dcbd" />
         </datasource-mapping>
         <naming-strategy-map />
       </configuration>
