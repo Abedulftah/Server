@@ -1,6 +1,7 @@
 package il.ac.haifa.cs.sweng.OCSFSimpleChat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class SimpleServer extends AbstractServer {
         configuration.addAnnotatedClass(Complain.class);
         configuration.addAnnotatedClass(SpecialItem.class);
         configuration.addAnnotatedClass(CustomerWorkerRespond.class);
+        configuration.addAnnotatedClass(Shop.class);
 
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                 .applySettings(configuration.getProperties())
@@ -71,6 +73,14 @@ public class SimpleServer extends AbstractServer {
         query.from(CustomerWorkerRespond.class);
         return session.createQuery(query).getResultList();
     }
+
+    public static List<Shop> getShops() {
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Shop> query = builder.createQuery(Shop.class);
+        query.from(Shop.class);
+        return session.createQuery(query).getResultList();
+    }
+
 
     public static void generate() {
         session.save(new Catalog("/Image/All_Day_Love.png", "All Day Love",
@@ -127,16 +137,31 @@ public class SimpleServer extends AbstractServer {
                 "59.99", "Arrangement of roses, lilies and alstroemeria in a glass vase", "Approximately 10.5\" W x 11\" H", "c9c9c9"));
         session.flush();
 
-        session.save(new SignUp("customer service", "abed", "abed", "0542293918", "!", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.save(new SignUp("customer service", "abed", "abed", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
         session.flush();
 
-        session.save(new SignUp("system worker", "mohammed", "mohammed", "0542293918", "!", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.save(new SignUp("system worker", "mohammed", "mohammed", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
         session.flush();
 
-        session.save(new SignUp("elite", "I'm", "yes", "0542293918", "!", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.save(new SignUp("elite", "I'm", "yes", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
         session.flush();
 
-        session.save(new SignUp("elite", "I", "no", "0542293918", "!", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.save(new SignUp("elite", "I", "no", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
+
+        session.save(new SignUp("shop manager 1", "Sgier", "s", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
+
+        session.save(new SignUp("system manager", "haya", "h", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
+
+        session.save(new SignUp("shop 1", "meme", "l", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
+
+        session.save(new SignUp("shop 4", "lolo", "k", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
+
+        session.save(new SignUp("shop 3", "sheshe", "g", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
         session.flush();
     }
 
@@ -274,14 +299,16 @@ public class SimpleServer extends AbstractServer {
 
                     String refund = ""; // we need to check the data here and send a refund
 
+                    System.out.println(catalog1.getDate());
+
                     int day = Integer.parseInt(catalog1.getDate().substring(8,10));
-                    int hour = Integer.parseInt(catalog1.getDate().substring(11,13));
+                    int hour = Integer.parseInt(catalog1.getDate().substring(11,13));// we need to take care when the hour is one digit
 
                     if(day >= date.getDay() && (hour > date.getHours())){
                         if(day > date.getDay() || hour - 3 > date.getHours())
-                            refund = "According to the instrucation of the shop we see that you will be refunded by 100% of the value of this order.";
+                            refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
                         else if(hour - 3 <= date.getHours() && hour - 1 >= date.getHours())
-                            refund = "According to the instrucation of the shop we see that you will be refunded by 50% of the value of this order.";
+                            refund = "According to the instruction of the shop we see that you will be refunded by 50% of the value of this order.";
                     }
                     else
                         refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
@@ -380,6 +407,41 @@ public class SimpleServer extends AbstractServer {
 
                     for (Catalog catalog : msgObject.getCatalogList()) {
                         session.update(catalog);
+                    }
+                    //we need to take care of elite and gold users we need to make a global shop. //done
+                    //we need to take the date when the client made the order not the arrival time
+                    //we have a problem with date
+                    List<Shop> shops = getShops();
+                    List<Catalog> catalogList = msgObject.getCatalogList();
+                    boolean found = false;
+                    for(Catalog catalog : catalogList) {
+                        found = false;
+                        for (Shop shop : shops) {
+                            if((shop.getDate().equals(catalog.getDate().substring(0,10)) && shop.getShopId().equals(catalog.getUser().getAccountType()))){
+                                shop.setNumberOfOrders(shop.getNumberOfOrders()+1);
+                                shop.setProfit(shop.getProfit() + Double.parseDouble(catalog.getPrice()));
+                                found = true;
+                                break;
+                            }
+                            else if (shop.getDate().equals(catalog.getDate().substring(0,10)) && (catalog.getUser().getAccountType().equals("elite") || catalog.getUser().getAccountType().equals("gold")) && shop.getShopId().equals("shop 11")) {
+                                found = true;
+                                shop.setNumberOfOrders(shop.getNumberOfOrders() + 1);
+                                break;
+                            }
+                        }
+                        if(!found){
+                            if(catalog.getUser().getAccountType().equals("elite") || catalog.getUser().getAccountType().equals("gold")){
+                                shops.add(new Shop("shop 11", 0, Double.parseDouble(catalog.getPrice()), 1, catalog.getDate().substring(0,10)));
+                            }
+                            else {
+                                shops.add(new Shop(catalog.getUser().getAccountType(), 0, Double.parseDouble(catalog.getPrice()), 1, catalog.getDate().substring(0, 10)));
+                            }
+                        }
+                    }
+
+                    for(Shop shop : shops){
+                        session.saveOrUpdate(shop);
+                        session.flush();
                     }
 
                     System.out.println("updating the order of the user");
@@ -548,8 +610,63 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
-            case "MakeAnOrder":
             case "complainList":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    session.saveOrUpdate(msgObject.getObject());
+
+                    Complain complain = (Complain) msgObject.getObject();
+                    List<Shop> shops = getShops();
+                    boolean found = false;
+
+                    for(Shop shop : shops){
+                        if(shop.getDate().equals(complain.getDate()) && shop.getShopId().equals(complain.getShopId())){
+                            found = true;
+                            shop.setNumberOfComplaints(shop.getNumberOfComplaints()+1);
+                            session.update(shop);
+                            session.flush();
+                            break;
+                        }
+                    }
+
+                    for(Shop shop : shops){
+                        if (complain.getDate().equals(shop.getDate()) && (complain.getShopId().equals("elite") || complain.getShopId().equals("gold")) && shop.getShopId().equals("shop 11")){
+                            found = true;
+                            shop.setNumberOfComplaints(shop.getNumberOfComplaints()+1);
+                            session.update(shop);
+                            session.flush();
+                            break;
+                        }
+                    }
+
+                    if(!found){
+                        if(complain.getShopId().equals("elite") || complain.getShopId().equals("gold")){
+                            session.save(new Shop("shop 11", 1, 0, 0, complain.getDate()));
+                            session.flush();
+                        }
+                        else {
+                            session.save(new Shop(complain.getShopId(), 1, 0, 0, complain.getDate()));
+                            session.flush();
+                        }
+                    }
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                break;
+            case "MakeAnOrder":
             case "specialItem":
             case "addUser":
                 try {
@@ -557,7 +674,6 @@ public class SimpleServer extends AbstractServer {
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
-                    //there is a problem where I cant get the catalog.
                     session.saveOrUpdate(msgObject.getObject());
 
                     System.out.println("adding a new member or a special item or a complain or an item or an order");
@@ -923,6 +1039,81 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
+            case "compareHist Orders":
+            case "compareHist Profit":
+            case "compareHist Complaints":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    List<Shop> shops = getShops();
+                    List<Shop> tempShops = new ArrayList<>();
+                    String str = (String) msgObject.getObject();
+                    String[] strTemp = str.split(" ");
+
+                    for(Shop shop : shops){
+                        if(shop.getShopId().equals("shop " + strTemp[0]) || shop.getShopId().equals("shop " + strTemp[1])) {
+                            tempShops.add(shop);
+                        }
+                    }
+
+                    msgObject.setObject(tempShops);
+                    msgObject.setMsg(msgObject.getMsg() + " " + str);
+                    System.out.println("getting shops");
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "Histogram Orders":
+            case "Histogram Profit":
+            case "Histogram Complaints":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    List<Shop> shops = getShops();
+                    List<Shop> tempShops = new ArrayList<>();
+                    int id = (int) msgObject.getObject();
+
+                    for(Shop shop : shops){
+                        if(shop.getShopId().equals("shop " + id)) {
+                            tempShops.add(shop);
+                        }
+                    }
+
+                    msgObject.setObject(tempShops);
+                    msgObject.setMsg(msgObject.getMsg() + " " + id);
+                    System.out.println("getting shops");
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                break;
+
             case "signInButton":
                 SignUp usr = null;
                 boolean found = false;
@@ -974,11 +1165,21 @@ public class SimpleServer extends AbstractServer {
                                 break;
 
                             case "system manager":
-                                /////
+                                msgObject.setMsg("primaryManager");
+                                msgObject.setObject(usr);
                                 break;
-
-                            case "shop manager":
-                                ////
+                            case "shop manager 1":
+                            case "shop manager 2":
+                            case "shop manager 3":
+                            case "shop manager 4":
+                            case "shop manager 5":
+                            case "shop manager 6":
+                            case "shop manager 7":
+                            case "shop manager 8":
+                            case "shop manager 9":
+                            case "shop manager 10":
+                                msgObject.setMsg("primarySingleShopManager");
+                                msgObject.setObject(usr);
                                 break;
 
                             default:
