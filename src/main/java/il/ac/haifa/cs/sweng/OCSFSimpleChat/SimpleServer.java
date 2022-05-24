@@ -298,11 +298,12 @@ public class SimpleServer extends AbstractServer {
                     Catalog catalog1 = msgObject.catalogList.get(0);
 
                     String refund = ""; // we need to check the data here and send a refund
+                    String[] stringDate = catalog1.getDate().split(" ");
+                    String[] stringHour = stringDate[1].split(":");
+                    String[] stringDay = stringDate[0].split("-");
 
-                    System.out.println(catalog1.getDate());
-
-                    int day = Integer.parseInt(catalog1.getDate().substring(8,10));
-                    int hour = Integer.parseInt(catalog1.getDate().substring(11,13));// we need to take care when the hour is one digit
+                    int day = Integer.parseInt(stringDay[2]);
+                    int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
 
                     if(day >= date.getDay() && (hour > date.getHours())){
                         if(day > date.getDay() || hour - 3 > date.getHours())
