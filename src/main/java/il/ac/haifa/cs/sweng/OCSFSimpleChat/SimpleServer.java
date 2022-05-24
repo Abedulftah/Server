@@ -225,7 +225,6 @@ public class SimpleServer extends AbstractServer {
                 }
                 break;
             case "edit":
-
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
@@ -1019,6 +1018,7 @@ public class SimpleServer extends AbstractServer {
                 break;
             case "signIn":
             case "contactUs":
+            case "signUp":
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
@@ -1199,7 +1199,6 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
-            case "signUp":
             case "signUpAccountType":
             default:
                 try {
