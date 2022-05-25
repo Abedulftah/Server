@@ -552,13 +552,9 @@ public class SimpleServer extends AbstractServer {
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
-
-                    Random random = new Random();
-                    Date date = new Date();
-
                     List<Catalog> catalogs = msgObject.getCatalogList();
-                   // Order order = (Order) msgObject.getObject(); // we get it from the confirmation page, there the client chooses the date and if he wants a shipping.
-                    Order order = new Order();
+                    Order order = (Order) msgObject.getObject(); // we get it from the confirmation page, there the client chooses the date and if he wants a shipping.
+
                     double sumOfPrices = 0;
 
                     for (Catalog catalog : catalogs) {
@@ -568,13 +564,13 @@ public class SimpleServer extends AbstractServer {
                     }
 
 
+                    if(order.isShipping())
+                        order.setPrice("" + (sumOfPrices + 10));
+                    else
+                        order.setPrice("" + sumOfPrices);
 
-                    order.setPrice("" + sumOfPrices);
                     order.setUser(catalogs.get(0).getUser());
                     order.setNumberOfItems(catalogs.size());
-
-                    order.setDate(String.valueOf(java.time.LocalDate.of(2022,5,25 + random.nextInt(7))) + " " + (date.getHours() + random.nextInt(3)) + ":00");//for now because the confirmation page is not ready yet
-                    order.setShipping(true);//for now because the confirmation page is not ready yet
 
                     for (Catalog catalog : catalogs) {
                         catalog.setOrder(order);
