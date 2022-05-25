@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(
-        name = "order"
+        name = "orders"
 )
 public class Order implements Serializable {
     @Id
@@ -27,7 +27,6 @@ public class Order implements Serializable {
     private String price;
     @Column(name = "shipping")
     private boolean shipping;
-
     @Column(name = "date")
     private String date;
     @OneToOne(cascade = CascadeType.ALL)

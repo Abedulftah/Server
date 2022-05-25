@@ -25,21 +25,19 @@ public class Catalog implements Serializable {
     @Column(name = "size")
     private String size;
 
-
     @Column(name = "Quantity")
     private int left;
     @Column(name = "imgUrl")
     private String imgUrl;
 
-    @Column(name = "date")
-    private String date;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private SignUp user;
 
-    @Lob
-    Blob image;
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Order order;
+
     private int privilege = 0;
 
     public Catalog(String imgUrl, String name, String price, String details, String size, String color){
@@ -60,12 +58,13 @@ public class Catalog implements Serializable {
         this.size = "";
     }
 
-    public void setDate(String date) {
-        this.date = date;
+
+    public Order getOrder() {
+        return order;
     }
 
-    public String getDate() {
-        return date;
+    public void setOrder(Order order) {
+        this.order = order;
     }
 
     public SignUp getUser() {

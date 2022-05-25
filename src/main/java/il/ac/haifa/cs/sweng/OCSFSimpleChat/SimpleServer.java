@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import il.ac.haifa.cs.sweng.OCSFSimpleChat.ocsf.server.AbstractServer;
 import il.ac.haifa.cs.sweng.OCSFSimpleChat.ocsf.server.ConnectionToClient;
@@ -31,6 +32,7 @@ public class SimpleServer extends AbstractServer {
         configuration.addAnnotatedClass(SpecialItem.class);
         configuration.addAnnotatedClass(CustomerWorkerRespond.class);
         configuration.addAnnotatedClass(Shop.class);
+        configuration.addAnnotatedClass(Order.class);
 
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                 .applySettings(configuration.getProperties())
@@ -78,6 +80,12 @@ public class SimpleServer extends AbstractServer {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Shop> query = builder.createQuery(Shop.class);
         query.from(Shop.class);
+        return session.createQuery(query).getResultList();
+    }
+    public static List<Order> getOrders() {
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Order> query = builder.createQuery(Order.class);
+        query.from(Order.class);
         return session.createQuery(query).getResultList();
     }
 
@@ -289,46 +297,79 @@ public class SimpleServer extends AbstractServer {
                 //we should send a notification about the refund he deserves
                 //we need to make a new instance of CustomerWorkerRespond and send an automatic messsage to the user notification
                 //all we need to do is save it to the database
+                //we need to take catalog out and put order in
+            {Order order = (Order) msgObject.getObject();
+                //we will get an order to remove by msgObject.getObject() and we will get the catalog list to remove by msgObject.getCatalogList()
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
                     session.beginTransaction();
+
                     Date date = new Date();
-                    Catalog catalog1 = msgObject.catalogList.get(0);
+
+
+                    List<Catalog> catalogs = getCatalog();
+
+                    for (Catalog catalog : catalogs) { //we remove the items that in the catalog we can find them
+
+                        if (catalog.getUser() != null && catalog.getUser().getEmail().equals(order.getUser().getEmail())) {//by searching in all the catalogs and see the catalog.order
+                            catalog.setUser(null);
+                            catalog.setOrder(null);
+
+                            session.update(catalog);
+                            session.flush();
+
+                            session.remove(catalog);
+                            session.flush();
+                        }
+                    }
 
                     String refund = ""; // we need to check the data here and send a refund
-                    String[] stringDate = catalog1.getDate().split(" ");
+                    String[] stringDate = order.getDate().split(" ");
                     String[] stringHour = stringDate[1].split(":");
                     String[] stringDay = stringDate[0].split("-");
 
                     int day = Integer.parseInt(stringDay[2]);
                     int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
 
-                    if(day >= date.getDay() && (hour > date.getHours())){
-                        if(day > date.getDay() || hour - 3 > date.getHours())
+                    if (day >= date.getDay() && (hour > date.getHours())) {
+                        if (day > date.getDay() || hour - 3 > date.getHours())
                             refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
-                        else if(hour - 3 <= date.getHours() && hour - 1 >= date.getHours())
+                        else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours())
                             refund = "According to the instruction of the shop we see that you will be refunded by 50% of the value of this order.";
-                    }
-                    else
+                    } else
                         refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
 
-                    session.save(new CustomerWorkerRespond("System", catalog1.getUser().getUsername(), catalog1.getUser().getEmail()
-                    , catalog1.getUser().getPhone(), "Your Order: " + catalog1.getName() + " " + catalog1.getPrice(), refund));
+                    session.save(new CustomerWorkerRespond("System", order.getUser().getUsername(), order.getUser().getEmail()
+                            , order.getUser().getPhone(), "Your Order: " + order.getUser().getUsername() + " " + order.getPrice(), refund));
 
-                    catalog1.setUser(null);
-                    session.update(catalog1);
+                    System.out.println("removing order");
+
+
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    order.setUser(null);
+                    session.remove(order);
                     session.flush();
 
-
-                    for(Catalog catalog : msgObject.getCatalogList()) {
-                        session.remove(catalog);
-                    }
-
-                    System.out.println("removing catalog");
-
-                    msgObject.setCatalogList(getCatalog());
-
+                    msgObject.setObject(getOrders());
                     session.getTransaction().commit(); // Save everything.
                 } catch (Exception exception) {
                     if (session != null) {
@@ -349,7 +390,8 @@ public class SimpleServer extends AbstractServer {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                break;
+            }
+            break;
             case "removeFromCart":
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
@@ -395,49 +437,75 @@ public class SimpleServer extends AbstractServer {
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
-                    List<Catalog> catalogs = (List<Catalog>) msgObject.getObject();
 
-                    if (catalogs != null) {
-                        for (Catalog catalog : catalogs) {
-                            catalog.setUser(null);
-                            session.remove(catalog);
-                            System.out.println("removing an item that exists");
-                        }
-                    }
+                    Random random = new Random();
+                    Date date = new Date();
 
-                    for (Catalog catalog : msgObject.getCatalogList()) {
+                    List<Catalog> catalogs = msgObject.getCatalogList();
+                   // Order order = (Order) msgObject.getObject(); // we get it from the confirmation page, there the client chooses the date and if he wants a shipping.
+                    Order order = new Order();
+                    double sumOfPrices = 0;
+
+                    for (Catalog catalog : catalogs) {
+                        sumOfPrices += Double.parseDouble(catalog.getPrice());
                         session.update(catalog);
+                        session.flush();
                     }
+
+
+
+                    order.setPrice("" + sumOfPrices);
+                    order.setUser(catalogs.get(0).getUser());
+                    order.setNumberOfItems(catalogs.size());
+
+                    order.setDate(String.valueOf(java.time.LocalDate.of(2022,5,25 + random.nextInt(7))) + " " + (date.getHours() + random.nextInt(3)) + ":00");//for now because the confirmation page is not ready yet
+                    order.setShipping(true);//for now because the confirmation page is not ready yet
+
+                    for (Catalog catalog : catalogs) {
+                        catalog.setOrder(order);
+                        session.update(catalog);
+                        session.flush();
+                    }
+
+                    session.save(order);
+                    session.flush();
+
+//                    if (catalogs != null) {
+//                        for (Catalog catalog : catalogs) {
+//                            catalog.setUser(null);
+//                            session.remove(catalog);
+//                            System.out.println("removing an item that exists");
+//                        }
+//                    }
+
+
                     //we need to take care of elite and gold users we need to make a global shop. //done
                     //we need to take the date when the client made the order not the arrival time
                     //we have a problem with date
+                    //we need to take catalog out and put order in
                     List<Shop> shops = getShops();
-                    List<Catalog> catalogList = msgObject.getCatalogList();
                     boolean found = false;
-                    for(Catalog catalog : catalogList) {
-                        found = false;
                         for (Shop shop : shops) {
-                            if((shop.getDate().equals(catalog.getDate().substring(0,10)) && shop.getShopId().equals(catalog.getUser().getAccountType()))){
+                            if((shop.getDate().equals(order.getDate().substring(0,10)) && shop.getShopId().equals(order.getUser().getAccountType()))){
                                 shop.setNumberOfOrders(shop.getNumberOfOrders()+1);
-                                shop.setProfit(shop.getProfit() + Double.parseDouble(catalog.getPrice()));
+                                shop.setProfit(shop.getProfit() + Double.parseDouble(order.getPrice()));
                                 found = true;
                                 break;
                             }
-                            else if (shop.getDate().equals(catalog.getDate().substring(0,10)) && (catalog.getUser().getAccountType().equals("elite") || catalog.getUser().getAccountType().equals("gold")) && shop.getShopId().equals("shop 11")) {
+                            else if (shop.getDate().equals(order.getDate().substring(0,10)) && (order.getUser().getAccountType().equals("elite") || order.getUser().getAccountType().equals("gold")) && shop.getShopId().equals("shop 11")) {
                                 found = true;
                                 shop.setNumberOfOrders(shop.getNumberOfOrders() + 1);
                                 break;
                             }
                         }
                         if(!found){
-                            if(catalog.getUser().getAccountType().equals("elite") || catalog.getUser().getAccountType().equals("gold")){
-                                shops.add(new Shop("shop 11", 0, Double.parseDouble(catalog.getPrice()), 1, catalog.getDate().substring(0,10)));
+                            if(order.getUser().getAccountType().equals("elite") || order.getUser().getAccountType().equals("gold")){
+                                shops.add(new Shop("shop 11", 0, Double.parseDouble(order.getPrice()), 1, order.getDate().substring(0,10)));
                             }
                             else {
-                                shops.add(new Shop(catalog.getUser().getAccountType(), 0, Double.parseDouble(catalog.getPrice()), 1, catalog.getDate().substring(0, 10)));
+                                shops.add(new Shop(order.getUser().getAccountType(), 0, Double.parseDouble(order.getPrice()), 1, order.getDate().substring(0, 10)));
                             }
                         }
-                    }
 
                     for(Shop shop : shops){
                         session.saveOrUpdate(shop);
@@ -698,7 +766,10 @@ public class SimpleServer extends AbstractServer {
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
-                    msgObject.setCatalogList(getCatalog());
+                    //we need to take catalog out and put order in
+
+
+                    msgObject.setObject(getOrders());
                     System.out.println("getting orders");
 
                     session.getTransaction().commit(); // Save everything.
