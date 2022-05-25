@@ -258,6 +258,123 @@ public class SimpleServer extends AbstractServer {
                     }
                 }
                 break;
+            case "removeItem":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    List<Order> orders = getOrders();
+                    Catalog catalog = (Catalog) msgObject.getObject();
+
+                    for(Order order : orders){
+                        if(order.getId() == catalog.getOrder().getId()) {
+                            catalog.setUser(null);
+                            catalog.setOrder(null);
+
+                            session.remove(catalog);
+                            session.flush();
+
+                            order.setPrice(String.valueOf(Double.parseDouble(order.getPrice()) - Double.parseDouble(catalog.getPrice())));
+                            order.setNumberOfItems(order.getNumberOfItems()-1);
+                            session.update(order);
+                            session.flush();
+
+                            msgObject.setObject(order);
+                            msgObject.setCatalogList(getCatalog());
+                            break;
+                        }
+                    }
+                    msgObject.setMsg("detailedOrderUser");
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "removeItemAndOrder":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    List<Order> orders = getOrders();
+                    Catalog catalog = (Catalog) msgObject.getObject();
+
+                    for(Order order : orders){
+                        if(order.getId() == catalog.getOrder().getId()) {
+                            catalog.setUser(null);
+                            catalog.setOrder(null);
+
+                            session.remove(catalog);
+                            session.flush();
+
+                            order.setUser(null);
+                            session.remove(order);
+                            session.flush();
+                        }
+                    }
+                    msgObject.setObject(getOrders());
+                    msgObject.setMsg("myOrdersUser");
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case "detailedOrderUser":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    msgObject.setCatalogList(getCatalog());
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
             case "deleteItem":
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
@@ -345,8 +462,6 @@ public class SimpleServer extends AbstractServer {
 
                     System.out.println("removing order");
 
-
-
                     session.getTransaction().commit(); // Save everything.
                 } catch (Exception exception) {
                     if (session != null) {
@@ -360,7 +475,7 @@ public class SimpleServer extends AbstractServer {
                     }
                 }
 
-                try {
+                try {//we get an error when we try to remove two things that are linked
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
                     session.beginTransaction();
@@ -437,13 +552,9 @@ public class SimpleServer extends AbstractServer {
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
-
-                    Random random = new Random();
-                    Date date = new Date();
-
                     List<Catalog> catalogs = msgObject.getCatalogList();
-                   // Order order = (Order) msgObject.getObject(); // we get it from the confirmation page, there the client chooses the date and if he wants a shipping.
-                    Order order = new Order();
+                    Order order = (Order) msgObject.getObject(); // we get it from the confirmation page, there the client chooses the date and if he wants a shipping.
+
                     double sumOfPrices = 0;
 
                     for (Catalog catalog : catalogs) {
@@ -453,13 +564,13 @@ public class SimpleServer extends AbstractServer {
                     }
 
 
+                    if(order.isShipping())
+                        order.setPrice("" + (sumOfPrices + 10));
+                    else
+                        order.setPrice("" + sumOfPrices);
 
-                    order.setPrice("" + sumOfPrices);
                     order.setUser(catalogs.get(0).getUser());
                     order.setNumberOfItems(catalogs.size());
-
-                    order.setDate(String.valueOf(java.time.LocalDate.of(2022,5,25 + random.nextInt(7))) + " " + (date.getHours() + random.nextInt(3)) + ":00");//for now because the confirmation page is not ready yet
-                    order.setShipping(true);//for now because the confirmation page is not ready yet
 
                     for (Catalog catalog : catalogs) {
                         catalog.setOrder(order);
