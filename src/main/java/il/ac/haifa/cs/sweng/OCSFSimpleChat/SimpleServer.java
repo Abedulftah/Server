@@ -1090,6 +1090,7 @@ public class SimpleServer extends AbstractServer {
             case "signIn":
             case "contactUs":
             case "signUp":
+            case "editAccountInformation":
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
