@@ -21,6 +21,12 @@ public class Order implements Serializable {
             strategy = GenerationType.IDENTITY
     )
     private int id;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "phone")
+    private String phone;
     @Column(name = "numberOfItems")
     private int numberOfItems;
     @Column(name = "price")
@@ -49,6 +55,22 @@ public class Order implements Serializable {
 
     public void setUser(SignUp user) {
         this.user = user;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getPhone() {
+        return phone;
     }
 
     public int getId() {
