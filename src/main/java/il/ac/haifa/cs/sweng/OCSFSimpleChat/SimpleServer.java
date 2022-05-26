@@ -930,6 +930,35 @@ public class SimpleServer extends AbstractServer {
                     e.printStackTrace();
                 }
                 break;
+            case "removeUserManager":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    SignUp signUp = (SignUp) msgObject.getObject();
+                    session.remove(signUp);
+                    session.flush();
+
+                    System.out.println("remove User");
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
             case "specialOrdersCustomerService":
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
@@ -1202,6 +1231,8 @@ public class SimpleServer extends AbstractServer {
             case "contactUs":
             case "signUp":
             case "editAccountInformation":
+            case "editUsersManager":
+            case "editUserManager":
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
