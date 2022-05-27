@@ -259,6 +259,7 @@ public class SimpleServer extends AbstractServer {
                 }
                 break;
             case "removeItem":
+                //we should make a notification for a refund for a specific item
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
@@ -306,6 +307,7 @@ public class SimpleServer extends AbstractServer {
                 }
                 break;
             case "removeItemAndOrder":
+                //we should make a notification for a refund or something for all of the order
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
@@ -1290,6 +1292,33 @@ public class SimpleServer extends AbstractServer {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                break;
+            case "Histogram Complaints ALL":
+            case "Histogram Profit ALL":
+            case "Histogram Orders ALL":
+                try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    msgObject.setObject(getShops());
+
+                    System.out.println("getting shops");
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                }
+                try {
+                    client.sendToClient(msgObject);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 break;
             case "Histogram Orders":
             case "Histogram Profit":
