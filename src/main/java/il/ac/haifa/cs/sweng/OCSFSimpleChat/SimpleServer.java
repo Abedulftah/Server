@@ -260,17 +260,19 @@ public class SimpleServer extends AbstractServer {
                 break;
             case "removeItem":
                 //we should make a notification for a refund for a specific item
+            {Order orderT = new Order();
+
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
                     List<Order> orders = getOrders();
+                    List<Shop> shops = getShops();
                     Catalog catalog = (Catalog) msgObject.getObject();
-                    Order orderT = new Order();
 
-                    for(Order order : orders){
-                        if(order.getId() == catalog.getOrder().getId()) {
+                    for (Order order : orders) {
+                        if (order.getId() == catalog.getOrder().getId()) {
                             catalog.setUser(null);
                             catalog.setOrder(null);
 
@@ -280,7 +282,8 @@ public class SimpleServer extends AbstractServer {
                             session.flush();
 
                             order.setPrice(String.valueOf(Double.parseDouble(order.getPrice()) - Double.parseDouble(catalog.getPrice())));
-                            order.setNumberOfItems(order.getNumberOfItems()-1);
+                            order.setNumberOfItems(order.getNumberOfItems() - 1);
+
                             session.update(order);
                             session.flush();
 
@@ -292,6 +295,32 @@ public class SimpleServer extends AbstractServer {
 
                     CustomerWorkerRespond customerWorkerRespond = new CustomerWorkerRespond();
                     SignUp user = orderT.getUser();
+
+                    for (Shop shop : shops) {
+                        if (shop.getShopId().equals(user.getAccountType()) && shop.getDate().equals(orderT.getDate().substring(0, 10))) {
+                            shop.setProfit(shop.getProfit() - Double.parseDouble(catalog.getPrice()));
+                            if (shop.getNumberOfOrders() == 0) {
+                                session.remove(shop);
+                                session.flush();
+                            } else {
+                                session.update(shop);
+                                session.flush();
+                            }
+                            break;
+                        } else if (shop.getShopId().equals("shop 100")
+                                && (user.getAccountType().equals("elite") || user.getAccountType().equals("gold"))
+                                && shop.getDate().equals(orderT.getDate().substring(0, 10))) {
+                            shop.setProfit(shop.getProfit() - Double.parseDouble(catalog.getPrice()));
+                            if (shop.getNumberOfOrders() == 0) {
+                                session.remove(shop);
+                                session.flush();
+                            } else {
+                                session.update(shop);
+                                session.flush();
+                            }
+                            break;
+                        }
+                    }
 
                     Date date = new Date();
 
@@ -308,11 +337,11 @@ public class SimpleServer extends AbstractServer {
                             customerWorkerRespond.setRefund("" + catalog.getPrice());
                             user.setMoneyInTheBank("" + (Double.parseDouble(user.getMoneyInTheBank()) + Double.parseDouble(catalog.getPrice())));
                             refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
-                        } else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours()){
+                        } else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours()) {
                             customerWorkerRespond.setRefund("" + (Double.parseDouble(catalog.getPrice()) * 0.5));
                             user.setMoneyInTheBank("" + (Double.parseDouble(user.getMoneyInTheBank()) + Double.parseDouble(catalog.getPrice()) * 0.5));
                             refund = "According to the instruction of the shop we see that you will be refunded by 50% of the value of this order.";
-                        }else {
+                        } else {
                             customerWorkerRespond.setRefund("0");
                             refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
                         }
@@ -349,10 +378,39 @@ public class SimpleServer extends AbstractServer {
                 }
 
                 try {
+                    SessionFactory sessionFactory = getSessionFactory();
+                    session = sessionFactory.openSession();
+                    session.beginTransaction();
+
+                    if(orderT.getNumberOfItems() == 0) {
+                        orderT.setUser(null);
+                        session.remove(orderT);
+                        session.flush();
+                        msgObject.setObject(getOrders());
+                        msgObject.setMsg("myOrdersUser");
+                    }
+
+
+                    session.getTransaction().commit(); // Save everything.
+                } catch (Exception exception) {
+                    if (session != null) {
+                        session.getTransaction().rollback();
+                    }
+                    System.err.println("An error occurred, changes have been rolled back.");
+                    exception.printStackTrace();
+                } finally {
+                    if (session != null) {
+                        session.close();
+                    }
+                }
+
+
+                try {
                     client.sendToClient(msgObject);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
                 break;
             case "removeItemAndOrder":
                 //we should make a notification for a refund or something for all of the order
@@ -362,10 +420,11 @@ public class SimpleServer extends AbstractServer {
                     session.beginTransaction();
 
                     List<Order> orders = getOrders();
+                    List<Shop> shops = getShops();
                     Catalog catalog = (Catalog) msgObject.getObject();
 
                     Order orderT = new Order();
-                    SignUp user = null;
+                    SignUp user = new SignUp();
 
                     for(Order order : orders){
                         if(order.getId() == catalog.getOrder().getId()) {
@@ -382,6 +441,38 @@ public class SimpleServer extends AbstractServer {
                             order.setUser(null);
                             session.remove(order);
                             session.flush();
+                            break;
+                        }
+                    }
+
+                    for(Shop shop : shops){
+                        if(shop.getShopId().equals(user.getAccountType()) && shop.getDate().equals(orderT.getDate().substring(0,10))) {
+                            shop.setProfit(shop.getProfit() - Double.parseDouble(catalog.getPrice()));
+                            shop.setNumberOfOrders(shop.getNumberOfOrders() - 1);
+                            if(shop.getNumberOfOrders() == 0) {
+                                session.remove(shop);
+                                session.flush();
+                            }
+                            else {
+                                session.update(shop);
+                                session.flush();
+                            }
+                            break;
+                        }
+                        else if(shop.getShopId().equals("shop 100")
+                                && (user.getAccountType().equals("elite") || user.getAccountType().equals("gold"))
+                                && shop.getDate().equals(orderT.getDate().substring(0,10))) {
+                            shop.setProfit(shop.getProfit() - Double.parseDouble(catalog.getPrice()));
+                            shop.setNumberOfOrders(shop.getNumberOfOrders() - 1);
+                            if(shop.getNumberOfOrders() == 0) {
+                                session.remove(shop);
+                                session.flush();
+                            }
+                            else {
+                                session.update(shop);
+                                session.flush();
+                            }
+                            break;
                         }
                     }
 
@@ -533,15 +624,46 @@ public class SimpleServer extends AbstractServer {
 
 
                     List<Catalog> catalogs = getCatalog();
+                    List<Shop> shops = getShops();
 
                     for (Catalog catalog : catalogs) { //we remove the items that in the catalog we can find them
 
-                        if (catalog.getUser() != null && catalog.getUser().getEmail().equals(order.getUser().getEmail())) {//by searching in all the catalogs and see the catalog.order
+                        if (catalog.getUser() != null && catalog.getOrder().getId() == order.getId()) {//by searching in all the catalogs and see the catalog.order
                             catalog.setUser(null);
                             catalog.setOrder(null);
-                            System.out.println("dsa");
                             session.remove(catalog);
                             session.flush();
+                        }
+                    }
+
+                    for(Shop shop : shops){
+                        if(shop.getShopId().equals(user.getAccountType())  && shop.getDate().equals(order.getDate().substring(0,10))) {
+                            shop.setProfit(shop.getProfit() - Double.parseDouble(order.getPrice()));
+                            shop.setNumberOfOrders(shop.getNumberOfOrders() - 1);
+                            if(shop.getNumberOfOrders() == 0) {
+                                session.remove(shop);
+                                session.flush();
+                            }
+                            else {
+                                session.update(shop);
+                                session.flush();
+                            }
+                            break;
+                        }
+                        else if(shop.getShopId().equals("shop 100")
+                                && (user.getAccountType().equals("elite") || user.getAccountType().equals("gold"))
+                                && shop.getDate().equals(order.getDate().substring(0,10))) {
+                            shop.setProfit(shop.getProfit() - Double.parseDouble(order.getPrice()));
+                            shop.setNumberOfOrders(shop.getNumberOfOrders() - 1);
+                            if(shop.getNumberOfOrders() == 0) {
+                                session.remove(shop);
+                                session.flush();
+                            }
+                            else {
+                                session.update(shop);
+                                session.flush();
+                            }
+                            break;
                         }
                     }
 
