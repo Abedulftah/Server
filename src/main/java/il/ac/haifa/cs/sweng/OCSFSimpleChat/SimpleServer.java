@@ -267,11 +267,14 @@ public class SimpleServer extends AbstractServer {
 
                     List<Order> orders = getOrders();
                     Catalog catalog = (Catalog) msgObject.getObject();
+                    Order orderT = new Order();
 
                     for(Order order : orders){
                         if(order.getId() == catalog.getOrder().getId()) {
                             catalog.setUser(null);
                             catalog.setOrder(null);
+
+                            orderT = order;
 
                             session.remove(catalog);
                             session.flush();
@@ -286,6 +289,44 @@ public class SimpleServer extends AbstractServer {
                             break;
                         }
                     }
+
+                    CustomerWorkerRespond customerWorkerRespond = new CustomerWorkerRespond();
+
+                    Date date = new Date();
+
+                    String refund = ""; // we need to check the data here and send a refund
+                    String[] stringDate = orderT.getDate().split(" ");
+                    String[] stringHour = stringDate[1].split(":");
+                    String[] stringDay = stringDate[0].split("-");
+
+                    int day = Integer.parseInt(stringDay[2]);
+                    int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
+
+                    if (day >= date.getDay()) {
+                        if (day > date.getDay() || hour - 3 > date.getHours()) {
+                            customerWorkerRespond.setRefund("" + orderT.getPrice());
+                            refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
+                        } else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours()){
+                            customerWorkerRespond.setRefund("" + (Double.parseDouble(orderT.getPrice()) * 0.5));
+                            refund = "According to the instruction of the shop we see that you will be refunded by 50% of the value of this order.";
+                        }else {
+                            customerWorkerRespond.setRefund("0");
+                            refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
+                        }
+                    } else {
+                        customerWorkerRespond.setRefund("0");
+                        refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
+                    }
+                    customerWorkerRespond.setNameWorker("System");
+                    customerWorkerRespond.setName(orderT.getUser().getUsername());
+                    customerWorkerRespond.setEmail(orderT.getUser().getEmail());
+                    customerWorkerRespond.setPhone(orderT.getPhone());
+                    customerWorkerRespond.setMessage("Your Order: " + orderT.getUser().getUsername() + " " + orderT.getPrice());
+                    customerWorkerRespond.setRespondMessage(refund);
+                    customerWorkerRespond.setDate(date.toString());
+
+                    session.save(customerWorkerRespond);
+
                     msgObject.setMsg("detailedOrderUser");
                     session.getTransaction().commit(); // Save everything.
                 } catch (Exception exception) {
@@ -316,10 +357,14 @@ public class SimpleServer extends AbstractServer {
                     List<Order> orders = getOrders();
                     Catalog catalog = (Catalog) msgObject.getObject();
 
+                    Order orderT = new Order();
+
                     for(Order order : orders){
                         if(order.getId() == catalog.getOrder().getId()) {
                             catalog.setUser(null);
                             catalog.setOrder(null);
+
+                            orderT = order;
 
                             session.remove(catalog);
                             session.flush();
@@ -329,6 +374,44 @@ public class SimpleServer extends AbstractServer {
                             session.flush();
                         }
                     }
+
+                    CustomerWorkerRespond customerWorkerRespond = new CustomerWorkerRespond();
+
+                    Date date = new Date();
+
+                    String refund = ""; // we need to check the data here and send a refund
+                    String[] stringDate = orderT.getDate().split(" ");
+                    String[] stringHour = stringDate[1].split(":");
+                    String[] stringDay = stringDate[0].split("-");
+
+                    int day = Integer.parseInt(stringDay[2]);
+                    int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
+
+                    if (day >= date.getDay()) {
+                        if (day > date.getDay() || hour - 3 > date.getHours()) {
+                            customerWorkerRespond.setRefund("" + orderT.getPrice());
+                            refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
+                        } else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours()){
+                            customerWorkerRespond.setRefund("" + (Double.parseDouble(orderT.getPrice()) * 0.5));
+                            refund = "According to the instruction of the shop we see that you will be refunded by 50% of the value of this order.";
+                        }else {
+                            customerWorkerRespond.setRefund("0");
+                            refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
+                        }
+                    } else {
+                        customerWorkerRespond.setRefund("0");
+                        refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
+                    }
+                    customerWorkerRespond.setNameWorker("System");
+                    customerWorkerRespond.setName(orderT.getUser().getUsername());
+                    customerWorkerRespond.setEmail(orderT.getUser().getEmail());
+                    customerWorkerRespond.setPhone(orderT.getPhone());
+                    customerWorkerRespond.setMessage("Your Order: " + orderT.getUser().getUsername() + " " + orderT.getPrice());
+                    customerWorkerRespond.setRespondMessage(refund);
+                    customerWorkerRespond.setDate(date.toString());
+
+                    session.save(customerWorkerRespond);
+
                     msgObject.setObject(getOrders());
                     msgObject.setMsg("myOrdersUser");
                     session.getTransaction().commit(); // Save everything.
@@ -417,7 +500,7 @@ public class SimpleServer extends AbstractServer {
                 //we need to make a new instance of CustomerWorkerRespond and send an automatic messsage to the user notification
                 //all we need to do is save it to the database
                 //we need to take catalog out and put order in
-            {Order order = (Order) msgObject.getObject();
+                {Order order = (Order) msgObject.getObject();
                 //we will get an order to remove by msgObject.getObject() and we will get the catalog list to remove by msgObject.getCatalogList()
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
@@ -443,6 +526,8 @@ public class SimpleServer extends AbstractServer {
                         }
                     }
 
+                    CustomerWorkerRespond customerWorkerRespond = new CustomerWorkerRespond();
+
                     String refund = ""; // we need to check the data here and send a refund
                     String[] stringDate = order.getDate().split(" ");
                     String[] stringHour = stringDate[1].split(":");
@@ -451,16 +536,31 @@ public class SimpleServer extends AbstractServer {
                     int day = Integer.parseInt(stringDay[2]);
                     int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
 
-                    if (day >= date.getDay() && (hour > date.getHours())) {
-                        if (day > date.getDay() || hour - 3 > date.getHours())
+                    if (day >= date.getDay()) {
+                        if (day > date.getDay() || hour - 3 > date.getHours()) {
+                            customerWorkerRespond.setRefund("" + order.getPrice());
                             refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
-                        else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours())
+                        } else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours()){
+                            customerWorkerRespond.setRefund("" + (Double.parseDouble(order.getPrice()) * 0.5));
                             refund = "According to the instruction of the shop we see that you will be refunded by 50% of the value of this order.";
-                    } else
+                        }else {
+                            customerWorkerRespond.setRefund("0");
+                            refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
+                        }
+                    } else {
+                        customerWorkerRespond.setRefund("0");
                         refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
+                    }
 
-                    session.save(new CustomerWorkerRespond("System", order.getUser().getUsername(), order.getUser().getEmail()
-                            , order.getUser().getPhone(), "Your Order: " + order.getUser().getUsername() + " " + order.getPrice(), refund));
+                    customerWorkerRespond.setNameWorker("System");
+                    customerWorkerRespond.setName(order.getUser().getUsername());
+                    customerWorkerRespond.setEmail(order.getUser().getEmail());
+                    customerWorkerRespond.setPhone(order.getPhone());
+                    customerWorkerRespond.setMessage("Your Order: " + order.getUser().getUsername() + " " + order.getPrice());
+                    customerWorkerRespond.setRespondMessage(refund);
+                    customerWorkerRespond.setDate(date.toString());
+
+                    session.save(customerWorkerRespond);
 
                     System.out.println("removing order");
 
