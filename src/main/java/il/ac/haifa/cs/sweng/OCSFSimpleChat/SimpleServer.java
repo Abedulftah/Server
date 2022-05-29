@@ -811,7 +811,11 @@ public class SimpleServer extends AbstractServer {
                     double sumOfPrices = 0;
 
                     for (Catalog catalog : catalogs) {
-                        sumOfPrices += Double.parseDouble(catalog.getPrice());
+                        if(catalog.getDiscount() == 0)
+                            sumOfPrices += Double.parseDouble(catalog.getPrice());
+                        else
+                            sumOfPrices += catalog.getDiscount();
+
                         session.update(catalog);
                         session.flush();
                     }
