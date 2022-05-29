@@ -82,13 +82,13 @@ public class SimpleServer extends AbstractServer {
         query.from(Shop.class);
         return session.createQuery(query).getResultList();
     }
+    
     public static List<Order> getOrders() {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Order> query = builder.createQuery(Order.class);
         query.from(Order.class);
         return session.createQuery(query).getResultList();
     }
-
 
     public static void generate() {
         session.save(new Catalog("/Image/All_Day_Love.png", "All Day Love",
