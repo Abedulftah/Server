@@ -821,11 +821,11 @@ public class SimpleServer extends AbstractServer {
                     }
 
 
-                    if(order.isShipping()) {
-                        sumOfPrices += 10;
-                    }
+                    if(order.isShipping())
+                        order.setPrice("" + (sumOfPrices + 10));
+                    else
+                        order.setPrice("" + sumOfPrices);
 
-                    order.setPrice("" + sumOfPrices);
                     order.setUser(catalogs.get(0).getUser());
                     order.setNumberOfItems(catalogs.size());
 
