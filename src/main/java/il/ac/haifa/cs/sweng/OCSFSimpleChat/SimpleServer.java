@@ -811,7 +811,7 @@ public class SimpleServer extends AbstractServer {
                     double sumOfPrices = 0;
 
                     for (Catalog catalog : catalogs) {
-                        if(catalog.getDiscount() == 0)
+                        if(catalog.getDiscount() == -1)
                             sumOfPrices += Double.parseDouble(catalog.getPrice());
                         else
                             sumOfPrices += catalog.getDiscount();
@@ -822,9 +822,9 @@ public class SimpleServer extends AbstractServer {
 
 
                     if(order.isShipping())
-                        order.setPrice("" + (sumOfPrices + 10));
-                    else
-                        order.setPrice("" + sumOfPrices);
+                        sumOfPrices += 10;
+
+                    order.setPrice("" + sumOfPrices);
 
                     order.setUser(catalogs.get(0).getUser());
                     order.setNumberOfItems(catalogs.size());
