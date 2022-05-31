@@ -808,23 +808,10 @@ public class SimpleServer extends AbstractServer {
                     List<Catalog> catalogs = msgObject.getCatalogList();
                     Order order = (Order) msgObject.getObject(); // we get it from the confirmation page, there the client chooses the date and if he wants a shipping.
 
-                    double sumOfPrices = 0;
-
                     for (Catalog catalog : catalogs) {
-                        if(catalog.getDiscount() == -1)
-                            sumOfPrices += Double.parseDouble(catalog.getPrice());
-                        else
-                            sumOfPrices += catalog.getDiscount();
-
                         session.update(catalog);
                         session.flush();
                     }
-
-
-                    if(order.isShipping())
-                        sumOfPrices += 10;
-
-                    order.setPrice("" + sumOfPrices);
 
                     order.setUser(catalogs.get(0).getUser());
                     order.setNumberOfItems(catalogs.size());
@@ -1050,7 +1037,7 @@ public class SimpleServer extends AbstractServer {
                     boolean found = false;
 
                     for(Shop shop : shops){
-                        if(shop.getDate().equals(complain.getDate()) && shop.getShopId().equals(complain.getShopId())){
+                        if(shop.getDate().equals(complain.getDate().substring(0,10)) && shop.getShopId().equals(complain.getShopId())){
                             found = true;
                             shop.setNumberOfComplaints(shop.getNumberOfComplaints()+1);
                             session.update(shop);
@@ -1060,7 +1047,7 @@ public class SimpleServer extends AbstractServer {
                     }
 
                     for(Shop shop : shops){
-                        if (complain.getDate().equals(shop.getDate()) && (complain.getShopId().equals("elite") || complain.getShopId().equals("gold")) && shop.getShopId().equals("shop 11")){
+                        if (complain.getDate().substring(0,10).equals(shop.getDate()) && (complain.getShopId().equals("elite") || complain.getShopId().equals("gold")) && shop.getShopId().equals("shop 11")){
                             found = true;
                             shop.setNumberOfComplaints(shop.getNumberOfComplaints()+1);
                             session.update(shop);
@@ -1071,11 +1058,11 @@ public class SimpleServer extends AbstractServer {
 
                     if(!found){
                         if(complain.getShopId().equals("elite") || complain.getShopId().equals("gold")){
-                            session.save(new Shop("shop 11", 1, 0, 0, complain.getDate()));
+                            session.save(new Shop("shop 11", 1, 0, 0, complain.getDate().substring(0,10)));
                             session.flush();
                         }
                         else {
-                            session.save(new Shop(complain.getShopId(), 1, 0, 0, complain.getDate()));
+                            session.save(new Shop(complain.getShopId(), 1, 0, 0, complain.getDate().substring(0,10)));
                             session.flush();
                         }
                     }
@@ -1453,13 +1440,50 @@ public class SimpleServer extends AbstractServer {
                 }
                 break;
             case "notificationsUser":
-
+                //we added an automatic refund if passed 24 hours on the complaint.
+                //we need to check if it works.
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
-                    msgObject.setObject(customerWorkerResponds());
+                    List<CustomerWorkerRespond> customerWorkerResponds = customerWorkerResponds();
+                    List<Complain> complains = getComplains();
+                    CustomerWorkerRespond customerWorkerRespond = null;
+                    SignUp user = msgObject.getUser();
+                    Date date = new Date();
+                    String refund = "We are sorry, we could not answer you in time, so we decided to refund you for that."; //
+
+                    for(Complain complain : complains){
+                        if(complain.getEmail().equals(user.getEmail())) {
+                            String[] stringDate = complain.getDate().split(" ");
+                            String[] stringHour = stringDate[1].split(":");
+                            String[] stringDay = stringDate[0].split("-");
+
+                            int day = Integer.parseInt(stringDay[2]);
+                            int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
+                            int minutes = Integer.parseInt((stringHour[1]));
+
+                            if (day == date.getDay()-1) {
+                                if(hour < date.getHours() || hour == date.getHours() && date.getMinutes() >= minutes){
+                                    customerWorkerRespond = new CustomerWorkerRespond("System", complain.getName(), complain.getEmail(), complain.getPhone(), complain.getMessage(), refund);
+                                    customerWorkerResponds.add(customerWorkerRespond);
+                                    session.save(customerWorkerRespond);
+                                    session.flush();
+                                }
+                            }
+                            else if(day < date.getDay()-1){
+                                customerWorkerRespond = new CustomerWorkerRespond("System", complain.getName(), complain.getEmail(), complain.getPhone(), complain.getMessage(), refund);
+                                customerWorkerResponds.add(customerWorkerRespond);
+                                session.save(customerWorkerRespond);
+                                session.flush();
+                            }
+
+
+                        }
+                    }
+
+                    msgObject.setObject(customerWorkerResponds);
                     System.out.println("get complain responds");
                     session.getTransaction().commit(); // Save everything.
                 } catch (Exception exception) {
