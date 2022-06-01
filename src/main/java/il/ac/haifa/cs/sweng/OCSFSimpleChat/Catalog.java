@@ -33,6 +33,7 @@ public class Catalog implements Serializable {
     @Column(name = "dicount")
     private double discount = -1;
 
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private SignUp user;

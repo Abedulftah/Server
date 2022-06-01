@@ -1,10 +1,8 @@
 package il.ac.haifa.cs.sweng.OCSFSimpleChat;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.time.LocalDate;
+import java.util.*;
 
 import il.ac.haifa.cs.sweng.OCSFSimpleChat.ocsf.server.AbstractServer;
 import il.ac.haifa.cs.sweng.OCSFSimpleChat.ocsf.server.ConnectionToClient;
@@ -170,6 +168,9 @@ public class SimpleServer extends AbstractServer {
         session.flush();
 
         session.save(new SignUp("shop 3", "sheshe", "g", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        session.flush();
+
+        session.save(new Complain("lolo", "k", "0542293918", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "shop 4", "2022-05-31 13:00"));
         session.flush();
     }
 
@@ -966,6 +967,50 @@ public class SimpleServer extends AbstractServer {
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
+                    List<Complain> complains = getComplains();
+                    LocalDate date = LocalDate.now();
+                    Calendar rightNow = Calendar.getInstance();
+                    //rightNow.get(Calendar.HOUR_OF_DAY); rightNow.get(Calendar.MINUTE);
+                    String refund = "We are sorry, we could not answer you in time, so we decided to refund you for that."; //
+
+                    for(Complain complain : complains){
+                            String[] stringDate = complain.getDate().split(" ");
+                            String[] stringHour = stringDate[1].split(":");
+                            String[] stringDay = stringDate[0].split("-");
+
+                            int month = Integer.parseInt(stringDay[1]);
+                            int day = Integer.parseInt(stringDay[2]);
+                            int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
+                            int minutes = Integer.parseInt((stringHour[1]));
+
+                            //I check usually if it is 30 and the next one is 31.
+                            if(month == date.getMonthValue()-1 && (day%31) == (date.getDayOfMonth()%30)-1) {
+                                if(hour < rightNow.get(Calendar.HOUR_OF_DAY) || (hour == rightNow.get(Calendar.HOUR_OF_DAY) && rightNow.get(Calendar.MINUTE) >= minutes)){
+                                    session.save(new CustomerWorkerRespond("System", complain.getName(), complain.getEmail(), complain.getPhone(), complain.getMessage(), refund));
+                                    session.flush();
+
+                                    session.remove(complain);
+                                    session.flush();
+                                }
+                            }
+                            else if (day == date.getDayOfMonth()-1) {
+                                if(hour < rightNow.get(Calendar.HOUR_OF_DAY) || (hour == rightNow.get(Calendar.HOUR_OF_DAY) && rightNow.get(Calendar.MINUTE) >= minutes)){
+                                    session.save(new CustomerWorkerRespond("System", complain.getName(), complain.getEmail(), complain.getPhone(), complain.getMessage(), refund));
+                                    session.flush();
+
+                                    session.remove(complain);
+                                    session.flush();
+                                }
+                            }
+                            else if(day < date.getDayOfMonth()-1){
+                                session.save(new CustomerWorkerRespond("System", complain.getName(), complain.getEmail(), complain.getPhone(), complain.getMessage(), refund));
+                                session.flush();
+
+                                session.remove(complain);
+                                session.flush();
+                            }
+                    }
+
                     msgObject.setObject(getComplains());
 
                     session.getTransaction().commit(); // Save everything.
@@ -1451,7 +1496,9 @@ public class SimpleServer extends AbstractServer {
                     List<Complain> complains = getComplains();
                     CustomerWorkerRespond customerWorkerRespond = null;
                     SignUp user = msgObject.getUser();
-                    Date date = new Date();
+                    LocalDate date = LocalDate.now();
+                    Calendar rightNow = Calendar.getInstance();
+                    //rightNow.get(Calendar.HOUR_OF_DAY); rightNow.get(Calendar.MINUTE);
                     String refund = "We are sorry, we could not answer you in time, so we decided to refund you for that."; //
 
                     for(Complain complain : complains){
@@ -1460,22 +1507,41 @@ public class SimpleServer extends AbstractServer {
                             String[] stringHour = stringDate[1].split(":");
                             String[] stringDay = stringDate[0].split("-");
 
+                            int month = Integer.parseInt(stringDay[1]);
                             int day = Integer.parseInt(stringDay[2]);
                             int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
                             int minutes = Integer.parseInt((stringHour[1]));
 
-                            if (day == date.getDay()-1) {
-                                if(hour < date.getHours() || hour == date.getHours() && date.getMinutes() >= minutes){
+                            //I check usually if it is 30 and the next one is 31.
+                            if(month == date.getMonthValue()-1 && (day%31) == (date.getDayOfMonth()%30)-1) {
+                                if(hour < rightNow.get(Calendar.HOUR_OF_DAY) || (hour == rightNow.get(Calendar.HOUR_OF_DAY) && rightNow.get(Calendar.MINUTE) >= minutes)){
                                     customerWorkerRespond = new CustomerWorkerRespond("System", complain.getName(), complain.getEmail(), complain.getPhone(), complain.getMessage(), refund);
                                     customerWorkerResponds.add(customerWorkerRespond);
                                     session.save(customerWorkerRespond);
                                     session.flush();
+
+                                    session.remove(complain);
+                                    session.flush();
                                 }
                             }
-                            else if(day < date.getDay()-1){
+                            else if (day == date.getDayOfMonth()-1) {
+                                if(hour < rightNow.get(Calendar.HOUR_OF_DAY) || (hour == rightNow.get(Calendar.HOUR_OF_DAY) && rightNow.get(Calendar.MINUTE) >= minutes)){
+                                    customerWorkerRespond = new CustomerWorkerRespond("System", complain.getName(), complain.getEmail(), complain.getPhone(), complain.getMessage(), refund);
+                                    customerWorkerResponds.add(customerWorkerRespond);
+                                    session.save(customerWorkerRespond);
+                                    session.flush();
+
+                                    session.remove(complain);
+                                    session.flush();
+                                }
+                            }
+                            else if(day < date.getDayOfMonth()-1){
                                 customerWorkerRespond = new CustomerWorkerRespond("System", complain.getName(), complain.getEmail(), complain.getPhone(), complain.getMessage(), refund);
                                 customerWorkerResponds.add(customerWorkerRespond);
                                 session.save(customerWorkerRespond);
+                                session.flush();
+
+                                session.remove(complain);
                                 session.flush();
                             }
 
