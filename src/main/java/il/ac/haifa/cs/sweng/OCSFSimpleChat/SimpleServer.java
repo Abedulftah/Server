@@ -261,8 +261,9 @@ public class SimpleServer extends AbstractServer {
                 break;
             case "removeItem":
                 //we should make a notification for a refund for a specific item
-            {Order orderT = new Order();
-
+                //we need to take care of the getDay() because its deprecated, maybe it will return something wrong. //done
+            {
+                Order orderT = new Order();
                 try {
                     SessionFactory sessionFactory = getSessionFactory();
                     session = sessionFactory.openSession();
@@ -323,9 +324,11 @@ public class SimpleServer extends AbstractServer {
                         }
                     }
 
-                    Date date = new Date();
+                    LocalDate date = LocalDate.now();
+                    Calendar rightNow = Calendar.getInstance();
+                    //rightNow.get(Calendar.HOUR_OF_DAY); rightNow.get(Calendar.MINUTE);
 
-                    String refund = ""; // we need to check the data here and send a refund
+                    String refund; // we need to check the data here and send a refund
                     String[] stringDate = orderT.getDate().split(" ");
                     String[] stringHour = stringDate[1].split(":");
                     String[] stringDay = stringDate[0].split("-");
@@ -333,12 +336,12 @@ public class SimpleServer extends AbstractServer {
                     int day = Integer.parseInt(stringDay[2]);
                     int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
 
-                    if (day >= date.getDay()) {
-                        if (day > date.getDay() || hour - 3 > date.getHours()) {
+                    if (day >= date.getDayOfMonth()) {
+                        if (day > date.getDayOfMonth() || hour - 3 > rightNow.get(Calendar.HOUR_OF_DAY)) {
                             customerWorkerRespond.setRefund("" + catalog.getPrice());
                             user.setMoneyInTheBank("" + (Double.parseDouble(user.getMoneyInTheBank()) + Double.parseDouble(catalog.getPrice())));
                             refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
-                        } else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours()) {
+                        } else if (hour - 3 <= rightNow.get(Calendar.HOUR_OF_DAY) && hour - 1 >= rightNow.get(Calendar.HOUR_OF_DAY)) {
                             customerWorkerRespond.setRefund("" + (Double.parseDouble(catalog.getPrice()) * 0.5));
                             user.setMoneyInTheBank("" + (Double.parseDouble(user.getMoneyInTheBank()) + Double.parseDouble(catalog.getPrice()) * 0.5));
                             refund = "According to the instruction of the shop we see that you will be refunded by 50% of the value of this order.";
@@ -480,9 +483,11 @@ public class SimpleServer extends AbstractServer {
 
                     CustomerWorkerRespond customerWorkerRespond = new CustomerWorkerRespond();
 
-                    Date date = new Date();
+                    LocalDate date = LocalDate.now();
+                    Calendar rightNow = Calendar.getInstance();
+                    //rightNow.get(Calendar.HOUR_OF_DAY); rightNow.get(Calendar.MINUTE);
 
-                    String refund = ""; // we need to check the data here and send a refund
+                    String refund; // we need to check the data here and send a refund
                     String[] stringDate = orderT.getDate().split(" ");
                     String[] stringHour = stringDate[1].split(":");
                     String[] stringDay = stringDate[0].split("-");
@@ -490,12 +495,12 @@ public class SimpleServer extends AbstractServer {
                     int day = Integer.parseInt(stringDay[2]);
                     int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
 
-                    if (day >= date.getDay() && user != null) {
-                        if (day > date.getDay() || hour - 3 > date.getHours()) {
+                    if (day >= date.getDayOfMonth() && user != null) {
+                        if (day > date.getDayOfMonth() || hour - 3 > rightNow.get(Calendar.HOUR_OF_DAY)) {
                             customerWorkerRespond.setRefund("" + orderT.getPrice());
                             user.setMoneyInTheBank("" + (Double.parseDouble(user.getMoneyInTheBank()) + Double.parseDouble(orderT.getPrice())));
                             refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
-                        } else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours()){
+                        } else if (hour - 3 <= rightNow.get(Calendar.HOUR_OF_DAY) && hour - 1 >= rightNow.get(Calendar.HOUR_OF_DAY)){
                             customerWorkerRespond.setRefund("" + (Double.parseDouble(orderT.getPrice()) * 0.5));
                             user.setMoneyInTheBank("" + (Double.parseDouble(user.getMoneyInTheBank()) + Double.parseDouble(orderT.getPrice()) * 0.5));
 
@@ -509,7 +514,7 @@ public class SimpleServer extends AbstractServer {
                         refund = "According to the instruction of the shop we see that you will not be refunded for canceling this order.";
                     }
                     customerWorkerRespond.setNameWorker("System");
-                    customerWorkerRespond.setName(user.getUsername());
+                    customerWorkerRespond.setName(Objects.requireNonNull(user).getUsername());
                     customerWorkerRespond.setEmail(user.getEmail());
                     customerWorkerRespond.setPhone(orderT.getPhone());
                     customerWorkerRespond.setMessage("Your Order: " + user.getUsername() + " " + orderT.getPrice());
@@ -621,7 +626,9 @@ public class SimpleServer extends AbstractServer {
                     session.beginTransaction();
 
 
-                    Date date = new Date();
+                    LocalDate date = LocalDate.now();
+                    Calendar rightNow = Calendar.getInstance();
+                    //rightNow.get(Calendar.HOUR_OF_DAY); rightNow.get(Calendar.MINUTE);
 
 
                     List<Catalog> catalogs = getCatalog();
@@ -629,7 +636,7 @@ public class SimpleServer extends AbstractServer {
 
                     for (Catalog catalog : catalogs) { //we remove the items that in the catalog we can find them
 
-                        if (catalog.getUser() != null && catalog.getOrder().getId() == order.getId()) {//by searching in all the catalogs and see the catalog.order
+                        if (catalog.getUser() != null && catalog.getOrder() != null && catalog.getOrder().getId() == order.getId()) {//by searching in all the catalogs and see the catalog.order
                             catalog.setUser(null);
                             catalog.setOrder(null);
                             session.remove(catalog);
@@ -671,7 +678,7 @@ public class SimpleServer extends AbstractServer {
                     CustomerWorkerRespond customerWorkerRespond = new CustomerWorkerRespond();
 
 
-                    String refund = ""; // we need to check the data here and send a refund
+                    String refund; // we need to check the data here and send a refund
                     String[] stringDate = order.getDate().split(" ");
                     String[] stringHour = stringDate[1].split(":");
                     String[] stringDay = stringDate[0].split("-");
@@ -679,12 +686,12 @@ public class SimpleServer extends AbstractServer {
                     int day = Integer.parseInt(stringDay[2]);
                     int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
 
-                    if (day >= date.getDay()) {
-                        if (day > date.getDay() || hour - 3 > date.getHours()) {
+                    if (day >= date.getDayOfMonth()) {
+                        if (day > date.getDayOfMonth()|| hour - 3 > rightNow.get(Calendar.HOUR_OF_DAY)) {
                             customerWorkerRespond.setRefund("" + order.getPrice());
                             user.setMoneyInTheBank("" + (Double.parseDouble(user.getMoneyInTheBank()) + Double.parseDouble(order.getPrice())));
                             refund = "According to the instruction of the shop we see that you will be refunded by 100% of the value of this order.";
-                        } else if (hour - 3 <= date.getHours() && hour - 1 >= date.getHours()) {
+                        } else if (hour - 3 <= rightNow.get(Calendar.HOUR_OF_DAY) && hour - 1 >= rightNow.get(Calendar.HOUR_OF_DAY)) {
                             customerWorkerRespond.setRefund("" + (Double.parseDouble(order.getPrice()) * 0.5));
                             user.setMoneyInTheBank("" + (Double.parseDouble(user.getMoneyInTheBank()) + Double.parseDouble(order.getPrice()) * 0.5));
 
@@ -1494,7 +1501,7 @@ public class SimpleServer extends AbstractServer {
 
                     List<CustomerWorkerRespond> customerWorkerResponds = customerWorkerResponds();
                     List<Complain> complains = getComplains();
-                    CustomerWorkerRespond customerWorkerRespond = null;
+                    CustomerWorkerRespond customerWorkerRespond;
                     SignUp user = msgObject.getUser();
                     LocalDate date = LocalDate.now();
                     Calendar rightNow = Calendar.getInstance();
@@ -1544,10 +1551,10 @@ public class SimpleServer extends AbstractServer {
                                 session.remove(complain);
                                 session.flush();
                             }
-
-
                         }
                     }
+
+                    //we need to an automatic message for that the client got the order.
 
                     msgObject.setObject(customerWorkerResponds);
                     System.out.println("get complain responds");
@@ -1733,38 +1740,26 @@ public class SimpleServer extends AbstractServer {
                     }
                     else{
                         switch (usr.getAccountType()) {
-
-                            case "system worker":
+                            case "system worker" -> {
                                 msgObject.setMsg("primarySystemWorker");
                                 msgObject.setObject(usr);
-                                break;
-
-                            case "customer service":
+                            }
+                            case "customer service" -> {
                                 msgObject.setMsg("primaryCustomerService");
                                 msgObject.setObject(usr);
-                                break;
-
-                            case "system manager":
+                            }
+                            case "system manager" -> {
                                 msgObject.setMsg("primaryManager");
                                 msgObject.setObject(usr);
-                                break;
-                            case "shop manager 1":
-                            case "shop manager 2":
-                            case "shop manager 3":
-                            case "shop manager 4":
-                            case "shop manager 5":
-                            case "shop manager 6":
-                            case "shop manager 7":
-                            case "shop manager 8":
-                            case "shop manager 9":
-                            case "shop manager 10":
+                            }
+                            case "shop manager 1", "shop manager 2", "shop manager 3", "shop manager 4", "shop manager 5", "shop manager 6", "shop manager 7", "shop manager 8", "shop manager 9", "shop manager 10" -> {
                                 msgObject.setMsg("primarySingleShopManager");
                                 msgObject.setObject(usr);
-                                break;
-
-                            default:
+                            }
+                            default -> {
                                 msgObject.setMsg("primaryUser");
                                 msgObject.setObject(usr);
+                            }
                         }
                     }
                 }
