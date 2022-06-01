@@ -161,7 +161,9 @@ public class SimpleServer extends AbstractServer {
         session.save(new SignUp("system manager", "haya", "h", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
         session.flush();
 
-        session.save(new SignUp("shop 1", "meme", "l", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+
+        SignUp user = new SignUp("shop 1", "meme", "l", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656);
+        session.save(user);
         session.flush();
 
         session.save(new SignUp("shop 4", "lolo", "k", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
@@ -171,6 +173,13 @@ public class SimpleServer extends AbstractServer {
         session.flush();
 
         session.save(new Complain("lolo", "k", "0542293918", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "shop 4", "2022-05-31 13:00"));
+        session.flush();
+
+        Order order = new Order(user, 3, "100", true);
+        order.setDate("2022-05-29 13:00");
+        order.setName("abed");
+        order.setPhone("0542293918");
+        session.save(order);
         session.flush();
     }
 
@@ -1165,6 +1174,62 @@ public class SimpleServer extends AbstractServer {
                     session.beginTransaction();
 
                     //we need to take catalog out and put order in
+                    //we need to take care of orders that the client got them we need to remove them from the list and to send a notification about it
+                    //we need to do the same thing in the notificationUser
+
+                    List<Order> orders = getOrders();
+                    SignUp user = msgObject.getUser();
+                    LocalDate date = LocalDate.now();
+                    Calendar rightNow = Calendar.getInstance();
+                    //rightNow.get(Calendar.HOUR_OF_DAY); rightNow.get(Calendar.MINUTE);
+
+                    for(Order order : orders){
+                        System.out.println(order.getUser().getEmail());
+                        if(order.getUser().getId() == user.getId()) {
+                            String[] stringDate = order.getDate().split(" ");
+                            String[] stringHour = stringDate[1].split(":");
+                            String[] stringDay = stringDate[0].split("-");
+
+                            int month = Integer.parseInt(stringDay[1]);
+                            int day = Integer.parseInt(stringDay[2]);
+                            int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
+                            int minutes = Integer.parseInt((stringHour[1]));
+
+                            //I check usually if it is 30 and the next one is 31.
+                            if(month == date.getMonthValue()-1 && (day%31) == (date.getDayOfMonth()%30)-1) {
+                                if(hour < rightNow.get(Calendar.HOUR_OF_DAY) || (hour == rightNow.get(Calendar.HOUR_OF_DAY) && rightNow.get(Calendar.MINUTE) >= minutes)){
+                                    session.save(new CustomerWorkerRespond("System", user.getUsername(), user.getEmail(), user.getPhone(), "You got the order.", "You got the order, congratulations"));
+                                    session.flush();
+
+                                    session.remove(order);
+                                    session.flush();
+                                }
+                            }
+                            else if(month == date.getMonthValue()-1) {
+                                session.save(new CustomerWorkerRespond("System", user.getUsername(), user.getEmail(), user.getPhone(), "You got the order.", "You got the order, congratulations"));
+                                session.flush();
+
+                                session.remove(order);
+                                session.flush();
+                            }
+                            else if (day == date.getDayOfMonth()-1) {
+                                if(hour < rightNow.get(Calendar.HOUR_OF_DAY) || (hour == rightNow.get(Calendar.HOUR_OF_DAY) && rightNow.get(Calendar.MINUTE) >= minutes)){
+                                    session.save(new CustomerWorkerRespond("System", user.getUsername(), user.getEmail(), user.getPhone(), "You got the order.", "You got the order, congratulations"));
+                                    session.flush();
+
+                                    session.remove(order);
+                                    session.flush();
+                                }
+                            }
+                            else if(day < date.getDayOfMonth()-1){
+                                session.save(new CustomerWorkerRespond("System", user.getUsername(), user.getEmail(), user.getPhone(), "You got the order.", "You got the order, congratulations"));
+                                session.flush();
+
+                                session.remove(order);
+                                session.flush();
+                            }
+                        }
+                    }
 
 
                     msgObject.setObject(getOrders());
@@ -1501,6 +1566,7 @@ public class SimpleServer extends AbstractServer {
 
                     List<CustomerWorkerRespond> customerWorkerResponds = customerWorkerResponds();
                     List<Complain> complains = getComplains();
+                    List<Order> orders = getOrders();
                     CustomerWorkerRespond customerWorkerRespond;
                     SignUp user = msgObject.getUser();
                     LocalDate date = LocalDate.now();
@@ -1554,7 +1620,63 @@ public class SimpleServer extends AbstractServer {
                         }
                     }
 
-                    //we need to an automatic message for that the client got the order.
+
+                    for(Order order : orders){
+                        if(order.getUser().getId() == user.getId()) {
+                            String[] stringDate = order.getDate().split(" ");
+                            String[] stringHour = stringDate[1].split(":");
+                            String[] stringDay = stringDate[0].split("-");
+
+                            int month = Integer.parseInt(stringDay[1]);
+                            int day = Integer.parseInt(stringDay[2]);
+                            int hour = Integer.parseInt(stringHour[0]);// we need to take care when the hour is one digit // done
+                            int minutes = Integer.parseInt((stringHour[1]));
+
+                            //I check usually if it is 30 and the next one is 31.
+                            if(month == date.getMonthValue()-1 && (day%31) == (date.getDayOfMonth()%30)-1) {
+                                if(hour < rightNow.get(Calendar.HOUR_OF_DAY) || (hour == rightNow.get(Calendar.HOUR_OF_DAY) && rightNow.get(Calendar.MINUTE) >= minutes)){
+                                    customerWorkerRespond = new CustomerWorkerRespond("System", user.getUsername(), user.getEmail(), user.getPhone(), "You got the order.", "You got the order, congratulations");
+                                    customerWorkerResponds.add(customerWorkerRespond);
+                                    session.save(customerWorkerRespond);
+                                    session.flush();
+
+                                    session.remove(order);
+                                    session.flush();
+                                }
+                            }
+                            else if(month == date.getMonthValue()-1) {
+                                customerWorkerRespond = new CustomerWorkerRespond("System", user.getUsername(), user.getEmail(), user.getPhone(), "You got the order.", "You got the order, congratulations");
+                                customerWorkerResponds.add(customerWorkerRespond);
+                                session.save(customerWorkerRespond);
+                                session.flush();
+
+                                session.remove(order);
+                                session.flush();
+                            }
+                            else if (day == date.getDayOfMonth()-1) {
+                                if(hour < rightNow.get(Calendar.HOUR_OF_DAY) || (hour == rightNow.get(Calendar.HOUR_OF_DAY) && rightNow.get(Calendar.MINUTE) >= minutes)){
+                                    customerWorkerRespond = new CustomerWorkerRespond("System", user.getUsername(), user.getEmail(), user.getPhone(), "You got the order.", "You got the order, congratulations");
+                                    customerWorkerResponds.add(customerWorkerRespond);
+                                    session.save(customerWorkerRespond);
+                                    session.flush();
+
+                                    session.remove(order);
+                                    session.flush();
+                                }
+                            }
+                            else if(day < date.getDayOfMonth()-1){
+                                customerWorkerRespond = new CustomerWorkerRespond("System", user.getUsername(), user.getEmail(), user.getPhone(), "You got the order.", "You got the order, congratulations");
+                                customerWorkerResponds.add(customerWorkerRespond);
+                                session.save(customerWorkerRespond);
+                                session.flush();
+
+                                session.remove(order);
+                                session.flush();
+                            }
+                        }
+                    }
+
+                    //we need to an automatic message for that the client got the order. //done
 
                     msgObject.setObject(customerWorkerResponds);
                     System.out.println("get complain responds");
