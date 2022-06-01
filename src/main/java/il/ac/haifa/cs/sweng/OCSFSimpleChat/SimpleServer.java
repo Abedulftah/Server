@@ -1232,6 +1232,7 @@ public class SimpleServer extends AbstractServer {
                     }
 
 
+                    msgObject.setMsg("myOrdersUser");
                     msgObject.setObject(getOrders());
                     System.out.println("getting orders");
 
