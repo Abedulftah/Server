@@ -90,7 +90,6 @@ public class SimpleServer extends AbstractServer {
 
     public static void generate() {
         session.save(new Catalog("/Image/All_Day_Love.png", "All Day Love",
-
                 "65.99", "Mixed roses in a glass bowl and a teddy bear",
                 "Approximately 11\" W x 12\" H", "ffd000"));
         session.flush();
@@ -143,43 +142,71 @@ public class SimpleServer extends AbstractServer {
                 "59.99", "Arrangement of roses, lilies and alstroemeria in a glass vase", "Approximately 10.5\" W x 11\" H", "c9c9c9"));
         session.flush();
 
-        session.save(new SignUp("customer service", "abed", "abed", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        Catalog catalog = new Catalog("/Image/Orchid.png", "Orchid bucket",
+                "49.99", "A simple and beautiful orchid flower bucket", "Approximately 10.5\" W x 11\" H", "ff69b4");
+        catalog.setDiscount(39.99);
+        session.save(catalog);
         session.flush();
 
-        session.save(new SignUp("system worker", "mohammed", "mohammed", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        catalog = new Catalog("/Image/sunflower.png", "sunflower beauty",
+                "54.99", "A very beautiful sunflowers with fall colors in a vase ", "Approximately 10.5\" W x 11\" H", "afeeee");
+        catalog.setDiscount(44.99);
+        session.save(catalog);
         session.flush();
 
-        session.save(new SignUp("elite", "I'm", "yes", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        catalog = new Catalog("/Image/tulip.png", "tulip mix",
+                "64.99", " Arrangement of a colorful tulip flowers ", "Approximately 10.5\" W x 11\" H", "b0C4de");
+        catalog.setDiscount(49.99);
+        session.save(catalog);
         session.flush();
 
-        session.save(new SignUp("elite", "I", "no", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        catalog = new Catalog("/Image/whiterose.png", "white glamour",
+                "74.99", "a very elegant and beautiful and fragrance vase with white roses  ", "Approximately 10.5\" W x 11\" H", "d3d3d3");
+        catalog.setDiscount(59.99);
+        session.save(catalog);
         session.flush();
 
-        session.save(new SignUp("shop manager 1", "Sgier", "s", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
-        session.flush();
-
-        session.save(new SignUp("system manager", "haya", "h", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
-        session.flush();
-
-
-        SignUp user = new SignUp("shop 1", "meme", "l", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656);
+        SignUp user = new SignUp("customer service", "abed_alftah", "abedalftah@outlook.com", "0542293918", "3bedalfta7!", "Kawkab main 2018500", "456486468468484", "abed", "2024/07", 656);
+        user.setCity("Kawkab");
+        user.setStreet("main");
+        user.setZip("2018500");
         session.save(user);
         session.flush();
 
-        session.save(new SignUp("shop 4", "lolo", "k", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        user = new SignUp("system worker", "mohamed.hussien", "mhmdhuss44@gmail.com", "0549366894", "Mhmdhuss2001@", "Deirhanna side 2497300", "368988745661188", "mohamed", "2025/08", 323);
+        user.setCity("Deirhanna");
+        user.setStreet("side");
+        user.setZip("2497300");
+        session.save(user);
         session.flush();
 
-        session.save(new SignUp("shop 3", "sheshe", "g", "0542293918", "", "kawkab main 2018500", "456486468468484", "abed", "2024/07", 656));
+        user = new SignUp("elite", "rojeh_azzam", "rojeh.azzam@gmail.com", "0543086734", "Rojeh1999@", "shefaamr 525 4632869", "468667845511676", "rojeh", "2024/08", 454);
+        user.setCity("shefaamr");
+        user.setStreet("525");
+        user.setZip("4632869");
+        session.save(user);
         session.flush();
 
-        session.save(new Complain("lolo", "k", "0542293918", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "shop 4", "2022-05-31 13:00"));
+        user = new SignUp("elite", "ali_amara", "ali.amara2000@hotmail.com", "0523832557", "Aliamara2000!", "kofrkanna side 3245362", "623486466689484", "ali", "2025/02", 200);
+        user.setCity("kofrkanna");
+        user.setStreet("side");
+        user.setZip("3245362");
+        session.save(user);
         session.flush();
 
-        Order order = new Order(user, 3, "100", true);
-        order.setDate("2022-05-29 13:00");
-        order.setName("abed");
-        order.setPhone("0542293918");
-        session.save(order);
+        session.save(new SignUp("shop manager 1", "mohamed.Sgier", "mhmdsgeir2@gmail.com", "0542293918", "Msgeir21@", "majdelkroom town 2362356", "464896548489923", "sgeir", "2026/04", 476));
+        session.flush();
+
+        session.save(new SignUp("system manager", "haya_hussien", "haya_huss@hotmail.com", "0549366854", "HAYAhuss1999@", "Deirhanna side 2497300", "34586423645488", "haya", "2025/09", 227));
+        session.flush();
+
+        session.save(new SignUp("shop 1", "mhmd_shaheen", "mohamed.shah22@gmail.com", "0523832645", "MHhmdshah2000!", "sakhnen side 3081000", "37642128846844", "mohamed", "2025/05", 224));
+        session.flush();
+
+        session.save(new SignUp("shop 4", "haya_saadi", "haya_saadi44@outlook.com", "0549905605", "HAYAsaadi44!", "sakhnen town 3081000", "622895576688186", "haya", "2026/04", 644));
+        session.flush();
+
+        session.save(new SignUp("shop 3", "maias.omar", "maias.omar97@gmail.com", "0503843771", "Maiasomar20@", "kawkab side 2018500", "486445642378668", "maias", "2027/04", 424));
         session.flush();
     }
 
