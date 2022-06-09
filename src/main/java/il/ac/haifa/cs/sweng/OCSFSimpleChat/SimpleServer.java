@@ -170,6 +170,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("Kawkab");
         user.setStreet("main");
         user.setZip("2018500");
+        user.setPob("");
         session.save(user);
         session.flush();
 
@@ -177,6 +178,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("Deirhanna");
         user.setStreet("side");
         user.setZip("2497300");
+        user.setPob("");
         session.save(user);
         session.flush();
 
@@ -184,6 +186,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("shefaamr");
         user.setStreet("525");
         user.setZip("4632869");
+        user.setPob("");
         session.save(user);
         session.flush();
 
@@ -191,6 +194,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("kofrkanna");
         user.setStreet("side");
         user.setZip("3245362");
+        user.setPob("");
         session.save(user);
         session.flush();
 
@@ -199,6 +203,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("majdelkroom");
         user.setStreet("town");
         user.setZip("2362356");
+        user.setPob("");
         session.save(user);
         session.flush();
 
@@ -207,6 +212,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("Deirhanna");
         user.setStreet("side");
         user.setZip("2497300");
+        user.setPob("");
         session.save(user);
         session.flush();
 
@@ -216,6 +222,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("sakhnen");
         user.setStreet("side");
         user.setZip("3081000");
+        user.setPob("");
         session.save(user);
         session.flush();
 
@@ -224,6 +231,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("sakhnen");
         user.setStreet("town");
         user.setZip("3081000");
+        user.setPob("");
         session.save(user);
         session.flush();
 
@@ -232,6 +240,7 @@ public class SimpleServer extends AbstractServer {
         user.setCity("kawkab");
         user.setStreet("side");
         user.setZip("2018500");
+        user.setPob("");
         session.save(user);
         session.flush();
 
