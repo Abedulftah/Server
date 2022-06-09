@@ -381,7 +381,7 @@ public class SimpleServer extends AbstractServer {
                                 session.flush();
                             }
                             break;
-                        } else if (shop.getShopId().equals("shop 100")
+                        } else if (shop.getShopId().equals("shop 11")
                                 && (user.getAccountType().equals("elite") || user.getAccountType().equals("gold"))
                                 && shop.getDate().equals(orderT.getDate().substring(0, 10))) {
                             shop.setProfit(shop.getProfit() - Double.parseDouble(catalog.getPrice()));
@@ -535,7 +535,7 @@ public class SimpleServer extends AbstractServer {
                             }
                             break;
                         }
-                        else if(shop.getShopId().equals("shop 100")
+                        else if(shop.getShopId().equals("shop 11")
                                 && (user.getAccountType().equals("elite") || user.getAccountType().equals("gold"))
                                 && shop.getDate().equals(orderT.getDate().substring(0,10))) {
                             shop.setProfit(shop.getProfit() - Double.parseDouble(catalog.getPrice()));
@@ -730,7 +730,7 @@ public class SimpleServer extends AbstractServer {
                             }
                             break;
                         }
-                        else if(shop.getShopId().equals("shop 100")
+                        else if(shop.getShopId().equals("shop 11")
                                 && (user.getAccountType().equals("elite") || user.getAccountType().equals("gold"))
                                 && shop.getDate().equals(order.getDate().substring(0,10))) {
                             shop.setProfit(shop.getProfit() - Double.parseDouble(order.getPrice()));
