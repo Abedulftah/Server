@@ -143,13 +143,13 @@ public class SimpleServer extends AbstractServer {
         session.flush();
 
         Catalog catalog = new Catalog("/Image/Orchid.png", "Orchid bucket",
-                "49.99", "A simple and beautiful orchid flower bucket", "Approximately 10.5\" W x 11\" H", "ff69b4");
+                "49.99", "A simple and beautiful orchid flower bucket", "Approximately 15\" W x 11\" H", "ff69b4");
         catalog.setDiscount(39.99);
         session.save(catalog);
         session.flush();
 
         catalog = new Catalog("/Image/sunflower.png", "sunflower beauty",
-                "54.99", "A very beautiful sunflowers with fall colors in a vase ", "Approximately 10.5\" W x 11\" H", "afeeee");
+                "54.99", "A very beautiful sunflowers with fall colors in a vase ", "Approximately 13.5\" W x 11\" H", "afeeee");
         catalog.setDiscount(44.99);
         session.save(catalog);
         session.flush();
@@ -195,19 +195,40 @@ public class SimpleServer extends AbstractServer {
         session.flush();
 
         session.save(new SignUp("shop manager 1", "mohamed.Sgier", "mhmdsgeir2@gmail.com", "0542293918", "Msgeir21@", "majdelkroom town 2362356", "464896548489923", "sgeir", "2026/04", 476));
+        user.setCity("majdelkroom");
+        user.setStreet("town");
+        user.setZip("2362356");
+        session.save(user);
         session.flush();
 
         session.save(new SignUp("system manager", "haya_hussien", "haya_huss@hotmail.com", "0549366854", "HAYAhuss1999@", "Deirhanna side 2497300", "34586423645488", "haya", "2025/09", 227));
+        user.setCity("Deirhanna");
+        user.setStreet("side");
+        user.setZip("2497300");
+        session.save(user);
         session.flush();
 
         session.save(new SignUp("shop 1", "mhmd_shaheen", "mohamed.shah22@gmail.com", "0523832645", "MHhmdshah2000!", "sakhnen side 3081000", "37642128846844", "mohamed", "2025/05", 224));
+        user.setCity("sakhnen");
+        user.setStreet("side");
+        user.setZip("3081000");
+        session.save(user);
         session.flush();
 
         session.save(new SignUp("shop 4", "haya_saadi", "haya_saadi44@outlook.com", "0549905605", "HAYAsaadi44!", "sakhnen town 3081000", "622895576688186", "haya", "2026/04", 644));
+        user.setCity("sakhnen");
+        user.setStreet("town");
+        user.setZip("3081000");
+        session.save(user);
         session.flush();
 
         session.save(new SignUp("shop 3", "maias.omar", "maias.omar97@gmail.com", "0503843771", "Maiasomar20@", "kawkab side 2018500", "486445642378668", "maias", "2027/04", 424));
+        user.setCity("kawkab");
+        user.setStreet("side");
+        user.setZip("2018500");
+        session.save(user);
         session.flush();
+
     }
 
     public static void addToDataBase() {
