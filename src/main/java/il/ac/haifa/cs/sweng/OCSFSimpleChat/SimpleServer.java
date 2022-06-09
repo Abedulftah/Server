@@ -1769,6 +1769,9 @@ public class SimpleServer extends AbstractServer {
                     session = sessionFactory.openSession();
                     session.beginTransaction();
 
+                    if(msgObject.getUser() != null)
+                        session.update(msgObject.getUser());
+
                     msgObject.setObject(getUsersInformation());
 
                     session.getTransaction().commit(); // Save everything.
